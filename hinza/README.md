@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hinza - Complaint Management System
+
+Web application for managing complaints, companies, users, and facilities with role-based access control.
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS v4
+- **Authentication**: Supabase Auth
+- **Database**: Supabase (PostgreSQL)
+- **Validation**: Zod
+- **State Management**: TanStack Query
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+ 
+- npm or yarn
+- Supabase account and project
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   cd hinza
+   npm install
+   ```
+
+3. Set up environment variables:
+   Create a `.env.local` file in the `hinza` directory:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. Set up Supabase:
+   - Create the following tables in your Supabase database:
+     - `companies`
+     - `users`
+   - Enable Row Level Security (RLS) policies
+   - See `API_CONTRACTS.md` for schema details
+
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Project Structure
+
+```
+hinza/
+├── app/                    # Next.js App Router pages
+│   ├── api/               # API routes
+│   ├── companies/         # Company management pages
+│   ├── users/             # User management pages
+│   ├── login/             # Authentication
+│   └── dashboard/         # Dashboard
+├── features/               # Feature-based modules
+│   ├── companies/         # Company feature components
+│   ├── users/             # User feature components
+│   ├── complaints/        # Complaint management (to be implemented)
+│   └── ...
+├── lib/                    # Utility libraries
+│   ├── supabase/          # Supabase client setup
+│   ├── api/               # API functions
+│   └── auth/               # Authentication utilities
+├── types/                  # TypeScript type definitions
+└── middleware.ts          # Next.js middleware for auth
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## User Roles
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Superadmin**: Full system access, can manage all companies
+- **Company Admin**: Manages users and resources within their company
+- **Management**: Can view complaints and reports
+- **QA Manager**: Manages complaint assignments and team
+- **QA Executive**: Handles assigned complaints
+- **Employee**: Can create and view complaints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features Implemented
 
-## Learn More
+✅ Authentication (login, session management)
+✅ Protected routes with middleware
+✅ Role-based access control (RBAC)
+✅ Company management (CRUD for superadmin)
+✅ User management (list, invite, assign roles)
 
-To learn more about Next.js, take a look at the following resources:
+## Features To Be Implemented
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [ ] Facility management
+- [ ] Complaint template management
+- [ ] Complaint management (CRUD, assignment, resolution)
+- [ ] QA Executive features
+- [ ] QA Manager features
+- [ ] Management dashboards
+- [ ] Reports and analytics
+- [ ] Audit logging
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API Contracts
 
-## Deploy on Vercel
+See `API_CONTRACTS.md` for detailed API specifications.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Development
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Run linting: `npm run lint`
+- Build for production: `npm run build`
+- Start production server: `npm start`
+
+## Notes
+
+- The UI is kept minimal as requested and will be enhanced later
+- Backend API contracts are defined but need to be implemented
+- User creation/invitation currently uses placeholder logic - needs Supabase Admin API integration
+- Company admin creation needs Supabase Auth Admin API integration

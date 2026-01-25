@@ -1,0 +1,654 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Facility } from '@/types/facility'
+import { Permission } from '@/types/auth'
+import { hasPermission } from '@/lib/auth/permissions'
+
+interface FacilitiesListPageProps {
+  companyId: string
+  companyName: string
+  userPermissions: Permission[]
+}
+
+export default function FacilitiesListPage({
+  companyId,
+  companyName,
+  userPermissions,
+}: FacilitiesListPageProps) {
+  const [facilities, setFacilities] = useState<Facility[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingFacility, setEditingFacility] = useState<Facility | null>(null)
+  const [formLoading, setFormLoading] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    address: '',
+    city: '',
+    state: '',
+    country: '',
+    postal_code: '',
+    phone: '',
+    email: '',
+  })
+
+  const canCreate = hasPermission(userPermissions, 'facilities:create')
+  const canUpdate = hasPermission(userPermissions, 'facilities:update')
+  const canDelete = hasPermission(userPermissions, 'facilities:delete')
+
+  useEffect(() => {
+    fetchFacilities()
+  }, [companyId])
+
+  const fetchFacilities = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`/api/facilities?company_id=${companyId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch facilities')
+      }
+      const data = await response.json()
+      setFacilities(data || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load facilities')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      address: '',
+      city: '',
+      state: '',
+      country: '',
+      postal_code: '',
+      phone: '',
+      email: '',
+    })
+    setFormError(null)
+    setEditingFacility(null)
+    setShowAddModal(false)
+  }
+
+  const handleEdit = (facility: Facility) => {
+    setFormData({
+      name: facility.name,
+      description: facility.description || '',
+      address: facility.address || '',
+      city: facility.city || '',
+      state: facility.state || '',
+      country: facility.country || '',
+      postal_code: facility.postal_code || '',
+      phone: facility.phone || '',
+      email: facility.email || '',
+    })
+    setEditingFacility(facility)
+    setShowAddModal(true)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim()) {
+      setFormError('Facility name is required')
+      return
+    }
+
+    setFormLoading(true)
+    setFormError(null)
+
+    try {
+      const url = editingFacility
+        ? `/api/facilities/${editingFacility.id}`
+        : '/api/facilities'
+      const method = editingFacility ? 'PATCH' : 'POST'
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          company_id: companyId,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to save facility')
+      }
+
+      await fetchFacilities()
+      resetForm()
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setFormLoading(false)
+    }
+  }
+
+  const handleDelete = async (facility: Facility) => {
+    if (!confirm(`Are you sure you want to delete "${facility.name}"?`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/facilities/${facility.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete facility')
+      }
+
+      await fetchFacilities()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete facility')
+    }
+  }
+
+  const handleToggleActive = async (facility: Facility) => {
+    try {
+      const response = await fetch(`/api/facilities/${facility.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !facility.is_active }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update facility')
+      }
+
+      await fetchFacilities()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update facility')
+    }
+  }
+
+  const filteredFacilities = facilities.filter(
+    (facility) =>
+      facility.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      facility.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      facility.country?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const activeFacilities = filteredFacilities.filter((f) => f.is_active)
+  const inactiveFacilities = filteredFacilities.filter((f) => !f.is_active)
+
+  return (
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Facilities</h1>
+          <p className="text-sm text-gray-500">
+            Manage locations and facilities for {companyName}
+          </p>
+        </div>
+        {canCreate && (
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Facility
+          </button>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-500">Total Facilities</p>
+          <p className="text-2xl font-bold text-gray-900">{facilities.length}</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-500">Active</p>
+          <p className="text-2xl font-bold text-green-600">
+            {facilities.filter((f) => f.is_active).length}
+          </p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-500">Inactive</p>
+          <p className="text-2xl font-bold text-gray-400">
+            {facilities.filter((f) => !f.is_active).length}
+          </p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search facilities by name, city, or country..."
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <svg
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* Content */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        </div>
+      ) : error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center">
+          <p className="text-sm text-red-800">{error}</p>
+          <button
+            onClick={fetchFacilities}
+            className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+          >
+            Try again
+          </button>
+        </div>
+      ) : filteredFacilities.length === 0 ? (
+        <div className="rounded-lg border border-gray-200 bg-white py-12 text-center">
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+            />
+          </svg>
+          <p className="mt-4 text-gray-500">
+            {searchTerm ? 'No facilities match your search' : 'No facilities yet'}
+          </p>
+          {canCreate && !searchTerm && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Add First Facility
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredFacilities.map((facility) => (
+            <div
+              key={facility.id}
+              className={`rounded-lg border bg-white p-4 ${
+                facility.is_active ? 'border-gray-200' : 'border-gray-100 bg-gray-50'
+              }`}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium text-gray-900">{facility.name}</h3>
+                    {!facility.is_active && (
+                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600">
+                        Inactive
+                      </span>
+                    )}
+                  </div>
+                  {facility.description && (
+                    <p className="mt-1 text-sm text-gray-500">{facility.description}</p>
+                  )}
+
+                  {/* Location */}
+                  {(facility.address ||
+                    facility.city ||
+                    facility.state ||
+                    facility.country) && (
+                    <div className="mt-2 flex items-start gap-2">
+                      <svg
+                        className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      <p className="text-sm text-gray-600">
+                        {[
+                          facility.address,
+                          facility.city,
+                          facility.state,
+                          facility.country,
+                          facility.postal_code,
+                        ]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Contact */}
+                  <div className="mt-2 flex flex-wrap gap-4">
+                    {facility.phone && (
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                          />
+                        </svg>
+                        {facility.phone}
+                      </div>
+                    )}
+                    {facility.email && (
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          />
+                        </svg>
+                        {facility.email}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                {(canUpdate || canDelete) && (
+                  <div className="flex gap-2">
+                    {canUpdate && (
+                      <>
+                        <button
+                          onClick={() => handleToggleActive(facility)}
+                          className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+                            facility.is_active
+                              ? 'text-gray-600 hover:bg-gray-100'
+                              : 'text-green-600 hover:bg-green-50'
+                          }`}
+                        >
+                          {facility.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          onClick={() => handleEdit(facility)}
+                          className="rounded-lg px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                        >
+                          Edit
+                        </button>
+                      </>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={() => handleDelete(facility)}
+                        className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add/Edit Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white p-6 shadow-xl mx-4">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {editingFacility ? 'Edit Facility' : 'Add New Facility'}
+              </h2>
+              <button
+                onClick={resetForm}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {formError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                  <p className="text-sm text-red-800">{formError}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Facility Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="e.g., Headquarters, Branch Office"
+                    required
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    rows={2}
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Brief description"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) =>
+                      setFormData({ ...formData, address: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Street address"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) =>
+                      setFormData({ ...formData, city: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="City"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    State/Province
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.state}
+                    onChange={(e) =>
+                      setFormData({ ...formData, state: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="State or Province"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Country
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.country}
+                    onChange={(e) =>
+                      setFormData({ ...formData, country: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Country"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Postal Code
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.postal_code}
+                    onChange={(e) =>
+                      setFormData({ ...formData, postal_code: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Postal/ZIP code"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Phone number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Facility email"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={formLoading || !formData.name.trim()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {formLoading ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Saving...
+                    </>
+                  ) : editingFacility ? (
+                    'Update Facility'
+                  ) : (
+                    'Create Facility'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
