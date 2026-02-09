@@ -10,19 +10,28 @@ interface Complaint {
   priority: string | null
   created_at: string
   updated_at: string | null
-  assigned_to: string | null
+  assigned_to_id: string | null
   product_id: string | null
   template_id: string | null
+}
+
+interface CompanyUser {
+  id: string
+  full_name: string | null
+  email: string | null
+  roles: Array<{ id: string; name: string }>
 }
 
 interface ComplaintsListPageProps {
   companyId: string
   canCreateComplaints: boolean
+  canAssignComplaints?: boolean
 }
 
 export default function ComplaintsListPage({
   companyId,
   canCreateComplaints,
+  canAssignComplaints = false,
 }: ComplaintsListPageProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,10 +39,16 @@ export default function ComplaintsListPage({
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null)
+  const [users, setUsers] = useState<CompanyUser[]>([])
+  const [assigning, setAssigning] = useState(false)
 
   useEffect(() => {
     fetchComplaints()
-  }, [companyId])
+    if (canAssignComplaints) {
+      fetchUsers()
+    }
+  }, [companyId, canAssignComplaints])
 
   const fetchComplaints = async () => {
     try {
@@ -50,6 +65,55 @@ export default function ComplaintsListPage({
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`/api/users?company_id=${companyId}`)
+      if (!res.ok) return
+      const data = await res.json()
+      setUsers(Array.isArray(data) ? data : [])
+    } catch {
+      // ignore - users list is non-critical
+    }
+  }
+
+  const qaExecutives = useMemo(() => {
+    return users.filter((u) =>
+      u.roles?.some((r) => r.name?.toLowerCase().includes('qa'))
+    )
+  }, [users])
+
+  const handleAssign = async (complaintId: string, assignedToId: string) => {
+    setAssigning(true)
+    try {
+      const res = await fetch(`/api/complaints/${complaintId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assigned_to_id: assignedToId || null,
+          ...(assignedToId ? { status: 'assigned' } : {}),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to assign')
+      }
+      await fetchComplaints()
+      if (selectedComplaint?.id === complaintId) {
+        setSelectedComplaint(data as Complaint)
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to assign')
+    } finally {
+      setAssigning(false)
+    }
+  }
+
+  const getAssigneeName = (assignedToId: string | null) => {
+    if (!assignedToId) return null
+    const u = users.find((x) => x.id === assignedToId)
+    return u?.full_name || u?.email || null
   }
 
   const filteredComplaints = useMemo(() => {
@@ -272,6 +336,9 @@ export default function ComplaintsListPage({
                     Priority
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Assigned To
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     Date
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -335,10 +402,18 @@ export default function ComplaintsListPage({
                       )}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      {getAssigneeName(complaint.assigned_to_id) ?? (
+                        <span className="text-gray-400">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       {formatDate(complaint.created_at)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right">
-                      <button className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                      <button
+                        onClick={() => setSelectedComplaint(complaint)}
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                      >
                         View
                       </button>
                     </td>
@@ -354,6 +429,116 @@ export default function ComplaintsListPage({
       <div className="text-sm text-gray-500">
         Showing {filteredComplaints.length} of {complaints.length} complaints
       </div>
+
+      {/* Complaint Detail Modal */}
+      {selectedComplaint && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <h2 className="text-lg font-semibold text-gray-900 truncate pr-4">
+                {selectedComplaint.title}
+              </h2>
+              <button
+                onClick={() => setSelectedComplaint(null)}
+                className="flex-shrink-0 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="space-y-6 p-6">
+              {/* Description */}
+              {selectedComplaint.description && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700">Description</h3>
+                  <p className="mt-1 text-sm text-gray-600 whitespace-pre-line">
+                    {selectedComplaint.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Meta info */}
+              <div className="flex flex-wrap gap-4 text-sm">
+                <span>
+                  <strong className="text-gray-700">Status:</strong>{' '}
+                  <span
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
+                      selectedComplaint.status
+                    )}`}
+                  >
+                    {formatStatus(selectedComplaint.status)}
+                  </span>
+                </span>
+                <span>
+                  <strong className="text-gray-700">Priority:</strong>{' '}
+                  {selectedComplaint.priority ? (
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityColor(
+                        selectedComplaint.priority
+                      )}`}
+                    >
+                      {selectedComplaint.priority.charAt(0).toUpperCase() +
+                        selectedComplaint.priority.slice(1)}
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </span>
+                <span>
+                  <strong className="text-gray-700">Created:</strong>{' '}
+                  {formatDate(selectedComplaint.created_at)}
+                </span>
+                <span>
+                  <strong className="text-gray-700">Assigned to:</strong>{' '}
+                  {getAssigneeName(selectedComplaint.assigned_to_id) ?? 'Unassigned'}
+                </span>
+              </div>
+
+              {/* Assign / Reassign to QA Executive */}
+              {canAssignComplaints && selectedComplaint.status?.toLowerCase() !== 'closed' && (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                  <h3 className="mb-2 text-sm font-medium text-gray-700">
+                    {selectedComplaint.assigned_to_id ? 'Reassign' : 'Assign'} to QA Executive
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={selectedComplaint.assigned_to_id ?? ''}
+                      onChange={(e) =>
+                        handleAssign(selectedComplaint.id, e.target.value)
+                      }
+                      disabled={assigning}
+                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                    >
+                      <option value="">Unassigned</option>
+                      {qaExecutives.length > 0 ? (
+                        qaExecutives.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.full_name || u.email || u.id}
+                          </option>
+                        ))
+                      ) : (
+                        users.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.full_name || u.email || u.id}
+                            {u.roles?.length > 0 && ` (${u.roles.map((r) => r.name).join(', ')})`}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    {assigning && (
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

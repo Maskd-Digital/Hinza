@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { isSystemAdmin } from '@/lib/auth/permissions'
+import { isQAManager } from '@/lib/auth/qa-manager'
+import { isQAExecutive } from '@/lib/auth/qa-executive'
 
 export default async function Home() {
   const user = await getUserWithRoles()
@@ -14,14 +16,19 @@ export default async function Home() {
     redirect('/login?error=account_deactivated')
   }
 
-  // Routing based on company_id:
-  // - Users with SYSTEM_ADMIN_COMPANY_ID are system-level users -> Superadmin Dashboard
-  // - Users with any other company_id belong to a specific company -> Company Admin Dashboard
+  // Routing:
+  // - System admin -> Superadmin Dashboard
+  // - QA Manager -> QA Manager Dashboard
+  // - QA Executive -> QA Executive Dashboard (my complaints only)
+  // - Other company users -> Company Admin Dashboard
   if (isSystemAdmin(user.company_id)) {
-    // System user (superadmin) goes to main dashboard
     redirect('/dashboard')
-  } else {
-    // Company user goes to their company's admin dashboard
-    redirect(`/company-admin/${user.company_id}`)
   }
+  if (isQAManager(user)) {
+    redirect(`/qa-manager/${user.company_id}`)
+  }
+  if (isQAExecutive(user)) {
+    redirect(`/qa-executive/${user.company_id}`)
+  }
+  redirect(`/company-admin/${user.company_id}`)
 }

@@ -50,6 +50,7 @@ export default async function ComplaintsPage({ params }: ComplaintsPageProps) {
       <ComplaintsListPage
         companyId={companyId}
         canCreateComplaints={hasPermission(user.permissions, 'complaints:create')}
+        canAssignComplaints={hasPermission(user.permissions, 'complaints:assign')}
       />
     </CompanyAdminLayout>
   )

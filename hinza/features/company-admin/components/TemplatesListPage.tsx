@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import AddTemplateModal from '@/features/companies/components/AddTemplateModal'
 
 interface TemplateField {
   id: string | null
@@ -33,6 +34,7 @@ export default function TemplatesListPage({
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null)
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false)
 
   useEffect(() => {
     fetchTemplates()
@@ -139,7 +141,10 @@ export default function TemplatesListPage({
           </p>
         </div>
         {canCreateTemplates && (
-          <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <button
+            onClick={() => setIsTemplateModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -337,6 +342,18 @@ export default function TemplatesListPage({
       <div className="text-sm text-gray-500">
         Showing {filteredTemplates.length} of {templates.length} templates
       </div>
+
+      {/* Add Template Modal */}
+      {canCreateTemplates && (
+        <AddTemplateModal
+          isOpen={isTemplateModalOpen}
+          onClose={() => {
+            setIsTemplateModalOpen(false)
+            fetchTemplates()
+          }}
+          companyId={companyId}
+        />
+      )}
     </div>
   )
 }

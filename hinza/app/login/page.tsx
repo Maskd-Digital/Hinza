@@ -66,14 +66,24 @@ export default function LoginPage() {
             return
           }
 
-          // Redirect based on company_id:
-          // - Users with SYSTEM_ADMIN_COMPANY_ID are system-level users -> Superadmin Dashboard
-          // - Users with any other company_id belong to a specific company -> Company Admin Dashboard
+          // Redirect: System admin -> dashboard; QA Manager/Executive -> dedicated dashboards; else company admin
           if (dbUser.company_id === SYSTEM_ADMIN_COMPANY_ID) {
-            // System user (superadmin) goes to main dashboard
             router.push('/dashboard')
+          } else if (
+            dbUser.roles?.some(
+              (r: { name?: string }) =>
+                r.name?.toLowerCase() === 'qa manager'
+            )
+          ) {
+            router.push(`/qa-manager/${dbUser.company_id}`)
+          } else if (
+            dbUser.roles?.some(
+              (r: { name?: string }) =>
+                r.name?.toLowerCase() === 'qa executive'
+            )
+          ) {
+            router.push(`/qa-executive/${dbUser.company_id}`)
           } else {
-            // Company user goes to their company's admin dashboard
             router.push(`/company-admin/${dbUser.company_id}`)
           }
           router.refresh()

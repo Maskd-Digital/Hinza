@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const companyId = searchParams.get('company_id')
+    const assignedToId = searchParams.get('assigned_to_id')
 
     if (!companyId) {
       return NextResponse.json(
@@ -22,16 +24,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Try to fetch complaints - adjust table name based on your schema
-    const { data: complaints, error } = await supabase
+    const adminClient = createAdminClient()
+    let query = adminClient
       .from('complaints')
       .select('*')
       .eq('company_id', companyId)
       .order('created_at', { ascending: false })
-      .limit(100) // Limit to prevent large responses
+      .limit(200)
+
+    if (assignedToId) {
+      query = query.eq('assigned_to_id', assignedToId)
+    }
+
+    const { data: complaints, error } = await query
 
     if (error) {
-      // If table doesn't exist, return empty array
       if (error.code === '42P01') {
         return NextResponse.json([])
       }
