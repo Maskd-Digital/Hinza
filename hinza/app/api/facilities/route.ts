@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { CreateFacilityInput, Facility } from '@/types/facility'
+import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
+import { hasPermission } from '@/lib/auth/permissions'
+import { CreateFacilityInput } from '@/types/facility'
 
 // GET /api/facilities - List facilities (optionally filtered by company_id)
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getUserWithRoles()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (!hasPermission(user.permissions, 'facilities:read')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const searchParams = request.nextUrl.searchParams
@@ -53,13 +53,12 @@ export async function GET(request: NextRequest) {
 // POST /api/facilities - Create a new facility
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getUserWithRoles()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (!hasPermission(user.permissions, 'facilities:create')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const body: CreateFacilityInput = await request.json()
