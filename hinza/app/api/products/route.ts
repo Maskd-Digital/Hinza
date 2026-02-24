@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
+import { hasPermission } from '@/lib/auth/permissions'
 import { CreateProductInput } from '@/types/product'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getUserWithRoles()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Log evaluated permissions for debugging (permission key in DB: products:read)
+    const permissionNames = (user.permissions || []).map((p) => p.name)
+    console.log('[api/products] User permissions:', permissionNames)
+    const canRead = hasPermission(user.permissions, 'products:read')
+    if (!canRead) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -23,7 +29,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const { data: products, error } = await supabase
+    const adminClient = createAdminClient()
+    const { data: products, error } = await adminClient
       .from('products')
       .select('*')
       .eq('company_id', companyId)
@@ -48,13 +55,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getUserWithRoles()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (!hasPermission(user.permissions, 'products:create')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const body: CreateProductInput = await request.json()
@@ -71,7 +77,8 @@ export async function POST(request: NextRequest) {
       insertData.description = body.description
     }
 
-    const { data: product, error } = await supabase
+    const adminClient = createAdminClient()
+    const { data: product, error } = await adminClient
       .from('products')
       .insert(insertData)
       .select()
