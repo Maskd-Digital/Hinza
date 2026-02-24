@@ -97,7 +97,7 @@ export default function AddRoleModal({
             type="text"
             value={roleName}
             onChange={(e) => setRoleName(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="e.g., QA Manager, Company Admin"
             required
           />
@@ -109,7 +109,7 @@ export default function AddRoleModal({
           </label>
           <div className="max-h-60 space-y-2 overflow-y-auto rounded-md border border-gray-200 p-4">
             {permissions.length === 0 ? (
-              <p className="text-sm text-gray-500">Loading permissions...</p>
+              <p className="text-sm text-[#081636]">Loading permissions...</p>
             ) : (
               permissions.map((permission) => (
                 <label
@@ -126,7 +126,7 @@ export default function AddRoleModal({
                     {permission.name}
                   </span>
                   {permission.description && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-[#081636]">
                       - {permission.description}
                     </span>
                   )}

@@ -15,34 +15,34 @@ interface MiniStatCardProps {
 
 const colorClasses = {
   blue: {
-    bg: 'bg-blue-50',
+    bg: 'bg-white',
     icon: 'bg-blue-100 text-blue-600',
     value: 'text-blue-600',
   },
   green: {
-    bg: 'bg-green-50',
+    bg: 'bg-white',
     icon: 'bg-green-100 text-green-600',
     value: 'text-green-600',
   },
   red: {
-    bg: 'bg-red-50',
+    bg: 'bg-white',
     icon: 'bg-red-100 text-red-600',
     value: 'text-red-600',
   },
   purple: {
-    bg: 'bg-purple-50',
+    bg: 'bg-white',
     icon: 'bg-purple-100 text-purple-600',
     value: 'text-purple-600',
   },
   amber: {
-    bg: 'bg-amber-50',
+    bg: 'bg-white',
     icon: 'bg-amber-100 text-amber-600',
     value: 'text-amber-600',
   },
   gray: {
-    bg: 'bg-gray-50',
-    icon: 'bg-gray-100 text-gray-600',
-    value: 'text-gray-600',
+    bg: 'bg-white',
+    icon: 'bg-gray-100 text-[#081636]',
+    value: 'text-[#081636]',
   },
 }
 
@@ -58,15 +58,15 @@ export default function MiniStatCard({
   const colors = colorClasses[color]
   
   const content = (
-    <div className={`rounded-xl p-4 ${colors.bg} ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}>
-      <div className="flex items-start justify-between">
+    <div className={`h-full min-h-[100px] rounded-xl p-4 ${colors.bg} ${onClick ? 'cursor-pointer transition-shadow hover:opacity-95' : ''}`} style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+      <div className="flex h-full items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <p className="text-xs font-medium text-[#081636] uppercase tracking-wide">
             {title}
           </p>
           <p className={`mt-1 text-2xl font-bold ${colors.value}`}>{value}</p>
           {subtitle && (
-            <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>
+            <p className="mt-0.5 text-xs text-[#081636]">{subtitle}</p>
           )}
           {trend && (
             <p
@@ -90,11 +90,11 @@ export default function MiniStatCard({
   
   if (onClick) {
     return (
-      <button onClick={onClick} className="w-full text-left">
+      <button onClick={onClick} className="h-full w-full text-left">
         {content}
       </button>
     )
   }
   
-  return content
+  return <div className="h-full w-full">{content}</div>
 }

@@ -106,10 +106,10 @@ export default function Step3CreateTemplates({
 
   return (
     <div>
-      <h2 className="mb-4 text-xl font-semibold text-gray-900">
+      <h2 className="mb-4 text-xl font-semibold text-[#081636]">
         Step 3: Create Complaint Templates (Optional)
       </h2>
-      <p className="mb-6 text-sm text-gray-600">
+      <p className="mb-6 text-sm text-[#081636]">
         Define complaint templates for this company. Templates help standardize
         complaint types. You can add fields to each template to capture specific
         information. You can skip this and create templates later.
@@ -117,11 +117,12 @@ export default function Step3CreateTemplates({
 
       {templates.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center">
-          <p className="text-sm text-gray-500">No templates added yet.</p>
+          <p className="text-sm text-[#081636]">No templates added yet.</p>
           <button
             type="button"
             onClick={addTemplate}
-            className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+            className="mt-4 rounded-md px-4 py-2 text-sm text-white hover:opacity-90"
+            style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
           >
             Add First Template
           </button>
@@ -134,7 +135,7 @@ export default function Step3CreateTemplates({
               className="rounded-lg border border-gray-200 p-6"
             >
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-[#081636]">
                   Template {templateIndex + 1}
                 </h3>
                 <button
@@ -148,7 +149,7 @@ export default function Step3CreateTemplates({
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     Template Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -157,14 +158,15 @@ export default function Step3CreateTemplates({
                     onChange={(e) =>
                       updateTemplate(templateIndex, 'name', e.target.value)
                     }
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                     placeholder="e.g., Product Quality Issue, Customer Service"
                     required
+                    style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     Description
                   </label>
                   <textarea
@@ -177,15 +179,16 @@ export default function Step3CreateTemplates({
                       )
                     }
                     rows={3}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                     placeholder="Describe what this template is used for..."
+                    style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
                   />
                 </div>
 
                 {/* Template Fields Section */}
                 <div className="mt-6 border-t border-gray-200 pt-4">
                   <div className="mb-4 flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-[#081636]">
                       Template Fields
                     </label>
                     <button
@@ -205,7 +208,7 @@ export default function Step3CreateTemplates({
                           className="rounded-md border border-gray-200 bg-gray-50 p-4"
                         >
                           <div className="mb-3 flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-[#081636]">
                               Field {fieldIndex + 1}
                             </span>
                             <button
@@ -221,7 +224,7 @@ export default function Step3CreateTemplates({
 
                           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
-                              <label className="block text-xs font-medium text-gray-700">
+                              <label className="block text-xs font-medium text-[#081636]">
                                 Field Name <span className="text-red-500">*</span>
                               </label>
                               <input
@@ -235,14 +238,15 @@ export default function Step3CreateTemplates({
                                     e.target.value
                                   )
                                 }
-                                className="mt-1 block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                                 placeholder="e.g., Product Name, Issue Description"
                                 required
+                                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
                               />
                             </div>
 
                             <div>
-                              <label className="block text-xs font-medium text-gray-700">
+                              <label className="block text-xs font-medium text-[#081636]">
                                 Field Type <span className="text-red-500">*</span>
                               </label>
                               <select
@@ -255,8 +259,9 @@ export default function Step3CreateTemplates({
                                     e.target.value as TemplateField['field_type']
                                   )
                                 }
-                                className="mt-1 block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-[#081636] shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                                 required
+                                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
                               >
                                 <option value="text">Text</option>
                                 <option value="textarea">Textarea</option>
@@ -285,7 +290,7 @@ export default function Step3CreateTemplates({
                               />
                               <label
                                 htmlFor={`required-${templateIndex}-${fieldIndex}`}
-                                className="ml-2 text-xs text-gray-700"
+                                className="ml-2 text-xs text-[#081636]"
                               >
                                 Required field
                               </label>
@@ -293,9 +298,9 @@ export default function Step3CreateTemplates({
 
                             {field.field_type === 'select' && (
                               <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-gray-700">
+                                <label className="block text-xs font-medium text-[#081636]">
                                   Options <span className="text-red-500">*</span>
-                                  <span className="ml-1 text-xs text-gray-500">
+                                  <span className="ml-1 text-xs text-[#081636]">
                                     (comma-separated)
                                   </span>
                                 </label>
@@ -309,9 +314,10 @@ export default function Step3CreateTemplates({
                                       e.target.value
                                     )
                                   }
-                                  className="mt-1 block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                                  className="mt-1 block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                                   placeholder="e.g., Option 1, Option 2, Option 3"
                                   required={field.field_type === 'select'}
+                                  style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
                                 />
                                 {field.field_type === 'select' &&
                                   (!field.options || field.options.length === 0) && (
@@ -328,7 +334,7 @@ export default function Step3CreateTemplates({
                     </div>
                   ) : (
                     <div className="rounded-md border border-dashed border-gray-300 p-4 text-center">
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-[#081636]">
                         No fields added. Click "Add Field" to add fields to this
                         template.
                       </p>
@@ -342,7 +348,7 @@ export default function Step3CreateTemplates({
           <button
             type="button"
             onClick={addTemplate}
-            className="w-full rounded-md border border-dashed border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="w-full rounded-md border border-dashed border-gray-300 bg-white px-4 py-3 text-sm font-medium text-[#081636] hover:bg-gray-50"
           >
             + Add Another Template
           </button>

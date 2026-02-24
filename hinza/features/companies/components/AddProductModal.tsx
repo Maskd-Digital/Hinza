@@ -141,7 +141,7 @@ export default function AddProductModal({
 
         {products.length === 0 ? (
           <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center">
-            <p className="text-sm text-gray-500">No products added yet.</p>
+            <p className="text-sm text-[#081636]">No products added yet.</p>
             <button
               type="button"
               onClick={addProduct}
@@ -158,7 +158,7 @@ export default function AddProductModal({
                 className="rounded-lg border border-gray-200 p-6"
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h3 className="text-lg font-medium text-[#081636]">
                     Product {index + 1}
                   </h3>
                   <button
@@ -172,7 +172,7 @@ export default function AddProductModal({
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-[#081636]">
                       Product Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -181,21 +181,21 @@ export default function AddProductModal({
                       onChange={(e) =>
                         updateProduct(index, 'name', e.target.value)
                       }
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                       placeholder="e.g., Product A, Category B"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-[#081636]">
                       Parent Product
-                      <span className="ml-2 text-xs font-normal text-gray-500">
+                      <span className="ml-2 text-xs font-normal text-[#081636]">
                         (Optional - leave empty for root-level product)
                       </span>
                     </label>
                     {fetchingProducts ? (
-                      <div className="mt-1 text-sm text-gray-500">
+                      <div className="mt-1 text-sm text-[#081636]">
                         Loading existing products...
                       </div>
                     ) : flattenedProducts.length > 0 ? (
@@ -204,7 +204,7 @@ export default function AddProductModal({
                         onChange={(e) =>
                           updateProduct(index, 'parent_id', e.target.value || undefined)
                         }
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                       >
                         <option value="">None (Top-level / Root product)</option>
                         {flattenedProducts.map((p) => (
@@ -214,21 +214,21 @@ export default function AddProductModal({
                         ))}
                       </select>
                     ) : (
-                      <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                      <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-[#081636]">
                         No existing products. This will be created as a root-level product.
                       </div>
                     )}
                     {product.parent_id && (
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-[#081636]">
                         This product will be created as a child of the selected parent. The hierarchy level will be automatically calculated.
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-[#081636]">
                       Description
-                      <span className="ml-2 text-xs font-normal text-gray-500">
+                      <span className="ml-2 text-xs font-normal text-[#081636]">
                         (Optional)
                       </span>
                     </label>
@@ -238,7 +238,7 @@ export default function AddProductModal({
                         updateProduct(index, 'description', e.target.value)
                       }
                       rows={2}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                       placeholder="Product description..."
                     />
                   </div>
@@ -249,7 +249,7 @@ export default function AddProductModal({
             <button
               type="button"
               onClick={addProduct}
-              className="w-full rounded-md border border-dashed border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="w-full rounded-md border border-dashed border-gray-300 bg-white px-4 py-3 text-sm font-medium text-[#081636] hover:bg-gray-50"
             >
               + Add Another Product
             </button>
@@ -260,7 +260,7 @@ export default function AddProductModal({
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-[#081636] hover:bg-gray-50"
             disabled={loading}
           >
             Cancel

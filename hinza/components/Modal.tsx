@@ -53,10 +53,10 @@ export default function Modal({
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <h2 className="text-xl font-semibold text-[#081636]">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="rounded-md text-[#081636] hover:text-[#081636] focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <span className="sr-only">Close</span>
             <svg

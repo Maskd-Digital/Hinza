@@ -56,7 +56,7 @@ export default function CreateUserForm() {
   }
 
   return (
-    <div className="max-w-2xl rounded-lg border border-gray-200 bg-white p-6 shadow">
+    <div className="mx-auto max-w-2xl rounded-lg border border-gray-200 bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
       <div className="mb-4 rounded-md bg-blue-50 p-4">
         <p className="text-sm text-blue-800">
           <strong>Note:</strong> This form creates a new superadmin user. The
@@ -75,7 +75,7 @@ export default function CreateUserForm() {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Email <span className="text-red-500">*</span>
           </label>
@@ -87,10 +87,11 @@ export default function CreateUserForm() {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="Enter user email"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-[#081636] opacity-100">
             The user must already exist in Supabase Auth. If not, create the
             user in Supabase Auth first.
           </p>
@@ -99,7 +100,7 @@ export default function CreateUserForm() {
         <div>
           <label
             htmlFor="full_name"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Full Name <span className="text-red-500">*</span>
           </label>
@@ -111,15 +112,16 @@ export default function CreateUserForm() {
             onChange={(e) =>
               setFormData({ ...formData, full_name: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="Enter user full name"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           />
         </div>
 
         <div>
           <label
             htmlFor="auth_user_id"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Auth User ID <span className="text-red-500">*</span>
           </label>
@@ -131,18 +133,19 @@ export default function CreateUserForm() {
             onChange={(e) =>
               setFormData({ ...formData, auth_user_id: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="Enter Supabase Auth user ID"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-[#081636] opacity-100">
             The user must already exist in Supabase Auth. Find their user ID in
             Supabase Dashboard → Authentication → Users.
           </p>
         </div>
 
         <div className="rounded-md bg-gray-50 p-4">
-          <p className="text-sm font-medium text-gray-700">Auto-assigned:</p>
-          <ul className="mt-2 space-y-1 text-sm text-gray-600">
+          <p className="text-sm font-medium text-[#081636]">Auto-assigned:</p>
+          <ul className="mt-2 space-y-1 text-sm text-[#081636]">
             <li>• Company: System</li>
             <li>• Role: Superadmin (with all permissions)</li>
           </ul>
@@ -152,14 +155,15 @@ export default function CreateUserForm() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-[#081636] hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md px-4 py-2 text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
           >
             {loading ? 'Creating...' : 'Create Superadmin'}
           </button>

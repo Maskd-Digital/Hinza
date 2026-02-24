@@ -195,13 +195,13 @@ export default function ComplaintsListPage({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Complaints</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-[#081636]">Complaints</h1>
+          <p className="mt-1 text-sm text-[#081636]">
             Track and manage customer complaints
           </p>
         </div>
         {canCreateComplaints && (
-          <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90" style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -212,37 +212,38 @@ export default function ComplaintsListPage({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm font-medium text-gray-500">Total</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{stats.total}</p>
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm font-medium text-[#081636]">Total</p>
+          <p className="mt-1 text-2xl font-semibold text-[#081636]">{stats.total}</p>
         </div>
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <p className="text-sm font-medium text-yellow-700">Pending</p>
-          <p className="mt-1 text-2xl font-semibold text-yellow-800">{stats.byStatus.pending}</p>
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm font-medium" style={{ color: '#FF4242' }}>Pending</p>
+          <p className="mt-1 text-2xl font-semibold" style={{ color: '#FF4242' }}>{stats.byStatus.pending}</p>
         </div>
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm font-medium text-blue-700">In Progress</p>
-          <p className="mt-1 text-2xl font-semibold text-blue-800">{stats.byStatus.in_progress}</p>
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm font-medium" style={{ color: '#FF9742' }}>In Progress</p>
+          <p className="mt-1 text-2xl font-semibold" style={{ color: '#FF9742' }}>{stats.byStatus.in_progress}</p>
         </div>
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-          <p className="text-sm font-medium text-green-700">Resolved</p>
-          <p className="mt-1 text-2xl font-semibold text-green-800">{stats.byStatus.resolved}</p>
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm font-medium" style={{ color: '#0FB200' }}>Resolved</p>
+          <p className="mt-1 text-2xl font-semibold" style={{ color: '#0FB200' }}>{stats.byStatus.resolved}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
           <p className="text-sm font-medium text-gray-700">Closed</p>
           <p className="mt-1 text-2xl font-semibold text-gray-800">{stats.byStatus.closed}</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 rounded-lg bg-white p-4 sm:flex-row sm:items-center" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search complaints..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-[#081636] placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }}
           />
           <svg
             className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
@@ -262,7 +263,8 @@ export default function ComplaintsListPage({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }}
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -273,7 +275,8 @@ export default function ComplaintsListPage({
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }}
           >
             <option value="all">All Priority</option>
             <option value="high">High</option>
@@ -284,14 +287,14 @@ export default function ComplaintsListPage({
       </div>
 
       {/* Content */}
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="rounded-lg bg-white overflow-hidden" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
         {loading ? (
           <div className="flex h-64 items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
           </div>
         ) : error ? (
           <div className="p-6">
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <div className="rounded-lg bg-red-50 p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
               <p className="text-sm text-red-800">{error}</p>
             </div>
           </div>
@@ -310,12 +313,12 @@ export default function ComplaintsListPage({
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <h3 className="mt-4 text-lg font-medium text-[#081636]">
               {searchQuery || statusFilter !== 'all' || priorityFilter !== 'all'
                 ? 'No complaints match your filters'
                 : 'No complaints yet'}
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-[#081636]">
               {searchQuery || statusFilter !== 'all' || priorityFilter !== 'all'
                 ? 'Try adjusting your filters'
                 : 'All complaints will appear here.'}
@@ -326,22 +329,22 @@ export default function ComplaintsListPage({
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Complaint
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Priority
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Assigned To
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Actions
                   </th>
                 </tr>
@@ -367,11 +370,11 @@ export default function ComplaintsListPage({
                           </svg>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                          <p className="text-sm font-medium text-[#081636] truncate max-w-xs">
                             {complaint.title}
                           </p>
                           {complaint.description && (
-                            <p className="text-sm text-gray-500 truncate max-w-xs">
+                            <p className="text-sm text-[#081636] truncate max-w-xs">
                               {complaint.description}
                             </p>
                           )}
@@ -401,18 +404,19 @@ export default function ComplaintsListPage({
                         <span className="text-sm text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#081636]">
                       {getAssigneeName(complaint.assigned_to_id) ?? (
                         <span className="text-gray-400">Unassigned</span>
                       )}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#081636]">
                       {formatDate(complaint.created_at)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right">
                       <button
                         onClick={() => setSelectedComplaint(complaint)}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        className="text-sm font-medium hover:opacity-80"
+                        style={{ color: '#2563EB' }}
                       >
                         View
                       </button>
@@ -426,7 +430,7 @@ export default function ComplaintsListPage({
       </div>
 
       {/* Summary */}
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-[#081636]">
         Showing {filteredComplaints.length} of {complaints.length} complaints
       </div>
 
@@ -436,7 +440,7 @@ export default function ComplaintsListPage({
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
             {/* Modal Header */}
             <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-              <h2 className="text-lg font-semibold text-gray-900 truncate pr-4">
+              <h2 className="text-lg font-semibold text-[#081636] truncate pr-4">
                 {selectedComplaint.title}
               </h2>
               <button
@@ -500,7 +504,7 @@ export default function ComplaintsListPage({
 
               {/* Assign / Reassign to QA Executive */}
               {canAssignComplaints && selectedComplaint.status?.toLowerCase() !== 'closed' && (
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="rounded-lg bg-blue-50 p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
                   <h3 className="mb-2 text-sm font-medium text-gray-700">
                     {selectedComplaint.assigned_to_id ? 'Reassign' : 'Assign'} to QA Executive
                   </h3>
@@ -511,7 +515,7 @@ export default function ComplaintsListPage({
                         handleAssign(selectedComplaint.id, e.target.value)
                       }
                       disabled={assigning}
-                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                     >
                       <option value="">Unassigned</option>
                       {qaExecutives.length > 0 ? (

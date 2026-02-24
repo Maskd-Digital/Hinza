@@ -72,11 +72,11 @@ export default function ViewComplaintsModal({
         )}
 
         {loading ? (
-          <div className="py-8 text-center text-gray-500">
+          <div className="py-8 text-center text-[#081636]">
             Loading complaints...
           </div>
         ) : complaints.length === 0 ? (
-          <div className="py-8 text-center text-gray-500">
+          <div className="py-8 text-center text-[#081636]">
             No complaints found for this company.
           </div>
         ) : (
@@ -89,12 +89,12 @@ export default function ViewComplaintsModal({
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     {complaint.title && (
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-[#081636]">
                         {complaint.title}
                       </h3>
                     )}
                     {complaint.description && (
-                      <p className="mt-1 text-sm text-gray-600">
+                      <p className="mt-1 text-sm text-[#081636]">
                         {complaint.description}
                       </p>
                     )}
@@ -106,13 +106,13 @@ export default function ViewComplaintsModal({
                               ? 'bg-green-100 text-green-800'
                               : complaint.status === 'pending'
                                 ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-gray-800'
+                                : 'bg-gray-100 text-[#081636]'
                           }`}
                         >
                           {complaint.status}
                         </span>
                       )}
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-[#081636]">
                         Created:{' '}
                         {new Date(complaint.created_at).toLocaleDateString()}
                       </span>
@@ -128,7 +128,7 @@ export default function ViewComplaintsModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-[#081636] hover:bg-gray-200"
           >
             Close
           </button>

@@ -18,7 +18,7 @@ export default function ComplaintsTimeline({
   return (
     <div className="w-full">
       {data.length === 0 ? (
-        <div className="flex h-48 items-center justify-center text-gray-500">
+        <div className="flex h-48 items-center justify-center text-[#081636]">
           <p>No complaints data available</p>
         </div>
       ) : (
@@ -57,7 +57,7 @@ export default function ComplaintsTimeline({
 
                   {/* Date Label */}
                   {index % 5 === 0 && (
-                    <div className="mt-2 text-xs text-gray-500">
+                    <div className="mt-2 text-xs text-[#081636]">
                       {dayLabel}
                     </div>
                   )}
@@ -68,8 +68,8 @@ export default function ComplaintsTimeline({
 
           {/* Y-axis labels */}
           <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-2">
-            <span className="text-xs text-gray-500">0</span>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-[#081636]">0</span>
+            <span className="text-xs text-[#081636]">
               Max: {maxCount} complaints
             </span>
           </div>

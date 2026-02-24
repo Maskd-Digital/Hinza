@@ -157,7 +157,7 @@ export default function CompanyProfile({
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-[#081636]">
               Created on{' '}
               {new Date(company.created_at).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -206,7 +206,7 @@ export default function CompanyProfile({
 
         {/* Timeline Graph */}
         <div className="mt-6 rounded-lg bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
+          <h2 className="mb-4 text-xl font-semibold text-[#081636]">
             Complaints Timeline (Last 30 Days)
           </h2>
           <ComplaintsTimeline data={stats.complaintsTimeline} />

@@ -93,7 +93,7 @@ export default function InviteUserForm({
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Email <span className="text-red-500">*</span>
           </label>
@@ -105,7 +105,7 @@ export default function InviteUserForm({
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="Enter user email"
           />
         </div>
@@ -113,7 +113,7 @@ export default function InviteUserForm({
         <div>
           <label
             htmlFor="full_name"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Full Name <span className="text-red-500">*</span>
           </label>
@@ -125,7 +125,7 @@ export default function InviteUserForm({
             onChange={(e) =>
               setFormData({ ...formData, full_name: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="Enter user full name"
           />
         </div>
@@ -133,7 +133,7 @@ export default function InviteUserForm({
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Initial Password <span className="text-red-500">*</span>
           </label>
@@ -147,13 +147,13 @@ export default function InviteUserForm({
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="Minimum 6 characters"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#081636] hover:text-[#081636]"
             >
               {showPassword ? (
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +167,7 @@ export default function InviteUserForm({
               )}
             </button>
           </div>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-[#081636]">
             User can change this password after logging in
           </p>
         </div>
@@ -175,7 +175,7 @@ export default function InviteUserForm({
         <div>
           <label
             htmlFor="confirmPassword"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Confirm Password <span className="text-red-500">*</span>
           </label>
@@ -188,7 +188,7 @@ export default function InviteUserForm({
             onChange={(e) =>
               setFormData({ ...formData, confirmPassword: e.target.value })
             }
-            className={`mt-1 block w-full rounded-md border px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:outline-none focus:ring-1 ${
+            className={`mt-1 block w-full rounded-md border px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:outline-none focus:ring-1 ${
               formData.confirmPassword && formData.password !== formData.confirmPassword
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -203,7 +203,7 @@ export default function InviteUserForm({
         <div>
           <label
             htmlFor="role_ids"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Roles
           </label>
@@ -231,7 +231,7 @@ export default function InviteUserForm({
               <option disabled>No roles available. Select a company first.</option>
             )}
           </select>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-[#081636]">
             Hold Ctrl/Cmd to select multiple roles
           </p>
         </div>
@@ -239,7 +239,7 @@ export default function InviteUserForm({
         <div>
           <label
             htmlFor="company_id"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Company ID
           </label>
@@ -251,7 +251,7 @@ export default function InviteUserForm({
             onChange={(e) =>
               setFormData({ ...formData, company_id: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="Enter company ID"
           />
         </div>
@@ -260,14 +260,15 @@ export default function InviteUserForm({
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-[#081636] hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading || (formData.password !== formData.confirmPassword)}
-            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md px-4 py-2 text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: '#2563EB' }}
           >
             {loading ? 'Creating...' : 'Create User'}
           </button>

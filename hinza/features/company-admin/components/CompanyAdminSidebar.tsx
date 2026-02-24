@@ -46,10 +46,10 @@ export default function CompanyAdminSidebar({
   const basePath = `/company-admin/${companyId}`
 
   return (
-    <aside className="w-64 border-r border-gray-200 bg-white">
+    <aside className="w-64 border-r border-gray-200" style={{ backgroundColor: '#0108B8' }}>
       <div className="flex h-full flex-col">
         {/* Company Header */}
-        <div className="border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 p-4">
+        <div className="p-4" style={{ backgroundColor: '#0108B8' }}>
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 text-white">
               <svg
@@ -70,21 +70,23 @@ export default function CompanyAdminSidebar({
               <h2 className="truncate text-sm font-semibold text-white">
                 {companyName}
               </h2>
-              <p className="text-xs text-blue-100">Company Admin</p>
+              <p className="text-xs text-white/80">Company Admin</p>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+        <nav className="flex flex-1 flex-col min-h-0 pt-4 pr-4 pb-4 pl-0">
+          <div className="flex-1 overflow-y-auto space-y-6">
           {/* Dashboard Link */}
-          <div className="space-y-1">
+          <div>
             <Link
               href={basePath}
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+              className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
                 isActive(basePath) && !pathname.includes('/users')
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'text-[#081636]'
+                  : 'text-white hover:bg-white/10 hover:text-white'
               }`}
+              style={isActive(basePath) && !pathname.includes('/users') ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' } : undefined}
             >
               <svg
                 className="h-5 w-5"
@@ -105,17 +107,15 @@ export default function CompanyAdminSidebar({
 
           {/* User Management */}
           {canViewUsers && (
-            <div className="space-y-1 pt-4">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                User Management
-              </p>
+            <div className="space-y-6">
               <Link
                 href={`${basePath}/users`}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
                   pathname === `${basePath}/users`
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'text-[#081636]'
+                    : 'text-white hover:bg-white/10 hover:text-white'
                 }`}
+                style={pathname === `${basePath}/users` ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' } : undefined}
               >
                 <svg
                   className="h-5 w-5"
@@ -135,11 +135,12 @@ export default function CompanyAdminSidebar({
               {canCreateUsers && (
                 <Link
                   href={`${basePath}/users/new`}
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                  className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
                     pathname === `${basePath}/users/new`
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'text-[#081636]'
+                      : 'text-white hover:bg-white/10 hover:text-white'
                   }`}
+                  style={pathname === `${basePath}/users/new` ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' } : undefined}
                 >
                   <svg
                     className="h-5 w-5"
@@ -162,17 +163,15 @@ export default function CompanyAdminSidebar({
 
           {/* Products */}
           {canViewProducts && (
-            <div className="space-y-1 pt-4">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Products
-              </p>
+            <div>
               <Link
                 href={`${basePath}/products`}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
                   pathname.includes('/products')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'text-[#081636]'
+                    : 'text-white hover:bg-white/10 hover:text-white'
                 }`}
+                style={pathname.includes('/products') ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' } : undefined}
               >
                 <svg
                   className="h-5 w-5"
@@ -194,17 +193,15 @@ export default function CompanyAdminSidebar({
 
           {/* Templates */}
           {canViewTemplates && (
-            <div className="space-y-1 pt-4">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Templates
-              </p>
+            <div>
               <Link
                 href={`${basePath}/templates`}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
                   pathname.includes('/templates')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'text-[#081636]'
+                    : 'text-white hover:bg-white/10 hover:text-white'
                 }`}
+                style={pathname.includes('/templates') ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' } : undefined}
               >
                 <svg
                   className="h-5 w-5"
@@ -226,17 +223,15 @@ export default function CompanyAdminSidebar({
 
           {/* Complaints */}
           {canViewComplaints && (
-            <div className="space-y-1 pt-4">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Complaints
-              </p>
+            <div>
               <Link
                 href={`${basePath}/complaints`}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
                   pathname.includes('/complaints')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'text-[#081636]'
+                    : 'text-white hover:bg-white/10 hover:text-white'
                 }`}
+                style={pathname.includes('/complaints') ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' } : undefined}
               >
                 <svg
                   className="h-5 w-5"
@@ -258,17 +253,15 @@ export default function CompanyAdminSidebar({
 
           {/* Facilities */}
           {canViewFacilities && (
-            <div className="space-y-1 pt-4">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Facilities
-              </p>
+            <div>
               <Link
                 href={`${basePath}/facilities`}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
                   pathname.includes('/facilities')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'text-[#081636]'
+                    : 'text-white hover:bg-white/10 hover:text-white'
                 }`}
+                style={pathname.includes('/facilities') ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' } : undefined}
               >
                 <svg
                   className="h-5 w-5"
@@ -290,17 +283,15 @@ export default function CompanyAdminSidebar({
 
           {/* Reports */}
           {canViewReports && (
-            <div className="space-y-1 pt-4">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Reports
-              </p>
+            <div>
               <Link
                 href={`${basePath}/reports`}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
                   pathname.includes('/reports')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'text-[#081636]'
+                    : 'text-white hover:bg-white/10 hover:text-white'
                 }`}
+                style={pathname.includes('/reports') ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' } : undefined}
               >
                 <svg
                   className="h-5 w-5"
@@ -320,14 +311,17 @@ export default function CompanyAdminSidebar({
             </div>
           )}
 
-          {/* Logout */}
-          <div className="border-t border-gray-200 pt-4 mt-auto">
+          </div>
+
+          {/* Logout - pinned to bottom */}
+          <div className="flex-shrink-0 pt-8 mt-auto">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              className="flex w-full items-center gap-3 rounded-r-lg px-3 py-2 text-left text-sm font-medium pl-6 hover:bg-white/10 transition-colors"
+              style={{ color: '#FF4242' }}
             >
               <svg
-                className="h-5 w-5"
+                className="h-5 w-5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

@@ -84,9 +84,9 @@ export default function ViewRolesModal({
         )}
 
         {loading ? (
-          <div className="py-8 text-center text-gray-500">Loading roles...</div>
+          <div className="py-8 text-center text-[#081636]">Loading roles...</div>
         ) : roles.length === 0 ? (
-          <div className="py-8 text-center text-gray-500">
+          <div className="py-8 text-center text-[#081636]">
             No roles found for this company.
           </div>
         ) : (
@@ -97,7 +97,7 @@ export default function ViewRolesModal({
                 className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
               >
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-[#081636]">
                     {role.name}
                   </h3>
                   <div className="flex items-center gap-2">
@@ -119,14 +119,14 @@ export default function ViewRolesModal({
 
                 {role.permissions.length > 0 ? (
                   <div className="mt-3">
-                    <p className="mb-2 text-sm font-medium text-gray-700">
+                    <p className="mb-2 text-sm font-medium text-[#081636]">
                       Permissions:
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {role.permissions.map((permission) => (
                         <span
                           key={permission.id}
-                          className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800"
+                          className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-[#081636]"
                         >
                           {permission.name}
                         </span>
@@ -134,7 +134,7 @@ export default function ViewRolesModal({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">No permissions assigned</p>
+                  <p className="text-sm text-[#081636]">No permissions assigned</p>
                 )}
               </div>
             ))}
@@ -145,7 +145,7 @@ export default function ViewRolesModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-[#081636] hover:bg-gray-200"
           >
             Close
           </button>

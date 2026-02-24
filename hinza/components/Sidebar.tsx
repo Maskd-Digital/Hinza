@@ -34,11 +34,18 @@ export default function Sidebar({ permissions }: SidebarProps) {
     return pathname.startsWith(path)
   }
 
+  const activeLinkStyle = {
+    backgroundColor: '#EFF4FF',
+    boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)',
+    marginLeft: '-1rem',
+    paddingLeft: '1.75rem',
+  }
+
   return (
-    <aside className="w-64 border-r border-gray-200 bg-white">
+    <aside className="w-64 border-r border-[#0108B8]" style={{ backgroundColor: '#0108B8' }}>
       <div className="flex h-full flex-col">
         {/* System Admin Header */}
-        <div className="border-b border-gray-200 bg-gradient-to-r from-gray-800 to-gray-900 p-4">
+        <div className="border-b border-white/10 p-4" style={{ backgroundColor: '#0108B8' }}>
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white">
               <svg
@@ -68,16 +75,16 @@ export default function Sidebar({ permissions }: SidebarProps) {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-          {/* Dashboard Link */}
-          <div className="space-y-1">
+        <nav className="flex-1 flex flex-col overflow-y-auto p-4">
+          <div className="flex flex-col gap-[25px]">
             <Link
               href="/dashboard"
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+              className={`flex items-center gap-3 px-3 py-2 text-sm font-medium ${
                 isActive('/dashboard') && !pathname.includes('/companies') && !pathname.includes('/users')
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'rounded-l-none rounded-r-lg text-[#081636]'
+                  : 'rounded-md text-white hover:bg-white/10 hover:text-white'
               }`}
+              style={isActive('/dashboard') && !pathname.includes('/companies') && !pathname.includes('/users') ? activeLinkStyle : undefined}
             >
               <svg
                 className="h-5 w-5"
@@ -94,21 +101,16 @@ export default function Sidebar({ permissions }: SidebarProps) {
               </svg>
               Dashboard
             </Link>
-          </div>
 
-          {/* Company Management */}
-          {canViewCompanies && (
-            <div className="space-y-1 pt-4">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Company Management
-              </p>
+            {canViewCompanies && (
               <Link
                 href="/companies"
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                className={`flex items-center gap-3 px-3 py-2 text-sm font-medium ${
                   pathname === '/companies'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'rounded-l-none rounded-r-lg text-[#081636]'
+                    : 'rounded-md text-white hover:bg-white/10 hover:text-white'
                 }`}
+                style={pathname === '/companies' ? activeLinkStyle : undefined}
               >
                 <svg
                   className="h-5 w-5"
@@ -125,47 +127,43 @@ export default function Sidebar({ permissions }: SidebarProps) {
                 </svg>
                 View Companies
               </Link>
-              {canCreateCompanies && (
-                <Link
-                  href="/companies/new"
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
-                    pathname === '/companies/new'
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
+            )}
+            {canCreateCompanies && (
+              <Link
+                href="/companies/new"
+                className={`flex items-center gap-3 px-3 py-2 text-sm font-medium ${
+                  pathname === '/companies/new'
+                    ? 'rounded-l-none rounded-r-lg text-[#081636]'
+                    : 'rounded-md text-white hover:bg-white/10 hover:text-white'
+                }`}
+                style={pathname === '/companies/new' ? activeLinkStyle : undefined}
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  Create Company
-                </Link>
-              )}
-            </div>
-          )}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Create Company
+              </Link>
+            )}
 
-          {/* User Management */}
-          {canViewUsers && (
-            <div className="space-y-1 pt-4">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                User Management
-              </p>
+            {canViewUsers && (
               <Link
                 href="/users"
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                className={`flex items-center gap-3 px-3 py-2 text-sm font-medium ${
                   pathname === '/users'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'rounded-l-none rounded-r-lg text-[#081636]'
+                    : 'rounded-md text-white hover:bg-white/10 hover:text-white'
                 }`}
+                style={pathname === '/users' ? activeLinkStyle : undefined}
               >
                 <svg
                   className="h-5 w-5"
@@ -182,71 +180,68 @@ export default function Sidebar({ permissions }: SidebarProps) {
                 </svg>
                 View All Users
               </Link>
-              {canCreateUsers && (
-                <>
-                  <Link
-                    href="/users/new-regular"
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
-                      pathname === '/users/new-regular'
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
+            )}
+            {canCreateUsers && (
+              <>
+                <Link
+                  href="/users/new-regular"
+                  className={`flex items-center gap-3 px-3 py-2 text-sm font-medium ${
+                    pathname === '/users/new-regular'
+                      ? 'rounded-l-none rounded-r-lg text-[#081636]'
+                      : 'rounded-md text-white hover:bg-white/10 hover:text-white'
+                  }`}
+                  style={pathname === '/users/new-regular' ? activeLinkStyle : undefined}
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                      />
-                    </svg>
-                    Create User
-                  </Link>
-                  <Link
-                    href="/users/new"
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
-                      pathname === '/users/new'
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                    />
+                  </svg>
+                  Create User
+                </Link>
+                <Link
+                  href="/users/new"
+                  className={`flex items-center gap-3 px-3 py-2 text-sm font-medium ${
+                    pathname === '/users/new'
+                      ? 'rounded-l-none rounded-r-lg text-[#081636]'
+                      : 'rounded-md text-white hover:bg-white/10 hover:text-white'
+                  }`}
+                  style={pathname === '/users/new' ? activeLinkStyle : undefined}
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                      />
-                    </svg>
-                    Create Superadmin
-                  </Link>
-                </>
-              )}
-            </div>
-          )}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    />
+                  </svg>
+                  Create Superadmin
+                </Link>
+              </>
+            )}
 
-          {/* System Settings */}
-          <div className="space-y-1 pt-4">
-            <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              System
-            </p>
             <Link
               href="/settings"
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+              className={`flex items-center gap-3 px-3 py-2 text-sm font-medium ${
                 pathname === '/settings'
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'rounded-l-none rounded-r-lg text-[#081636]'
+                  : 'rounded-md text-white hover:bg-white/10 hover:text-white'
               }`}
+              style={pathname === '/settings' ? activeLinkStyle : undefined}
             >
               <svg
                 className="h-5 w-5"
@@ -272,10 +267,10 @@ export default function Sidebar({ permissions }: SidebarProps) {
           </div>
 
           {/* Logout */}
-          <div className="border-t border-gray-200 pt-4 mt-auto">
+          <div className="border-t border-white/10 pt-[25px] mt-auto">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium text-white hover:bg-white/10 hover:text-white"
             >
               <svg
                 className="h-5 w-5"

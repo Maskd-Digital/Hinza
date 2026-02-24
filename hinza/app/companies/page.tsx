@@ -21,13 +21,14 @@ export default async function CompaniesPage() {
 
   return (
     <DashboardLayout permissions={user.permissions}>
-      <div className="p-6">
+      <div className="min-h-full p-6" style={{ backgroundColor: '#EFF4FF' }}>
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Companies</h1>
+          <h1 className="text-2xl font-semibold text-[#081636]">Companies</h1>
           {hasPermission(user.permissions, 'companies:create') && (
             <a
               href="/companies/new"
-              className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="rounded-md px-4 py-2 text-white hover:opacity-90 transition-colors"
+              style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
             >
               Create Company
             </a>

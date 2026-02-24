@@ -135,15 +135,16 @@ export default function TemplatesListPage({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Templates</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-[#081636]">Templates</h1>
+          <p className="mt-1 text-sm text-[#081636]">
             Manage complaint templates and their fields
           </p>
         </div>
         {canCreateTemplates && (
           <button
             onClick={() => setIsTemplateModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -155,19 +156,19 @@ export default function TemplatesListPage({
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm font-medium text-gray-500">Total Templates</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{templates.length}</p>
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm font-medium text-[#081636]">Total Templates</p>
+          <p className="mt-1 text-2xl font-semibold text-[#081636]">{templates.length}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm font-medium text-gray-500">Total Fields</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm font-medium text-[#081636]">Total Fields</p>
+          <p className="mt-1 text-2xl font-semibold text-[#081636]">
             {templates.reduce((acc, t) => acc + t.fields.length, 0)}
           </p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm font-medium text-gray-500">Avg Fields/Template</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm font-medium text-[#081636]">Avg Fields/Template</p>
+          <p className="mt-1 text-2xl font-semibold text-[#081636]">
             {templates.length > 0
               ? (templates.reduce((acc, t) => acc + t.fields.length, 0) / templates.length).toFixed(1)
               : '0'}
@@ -176,14 +177,15 @@ export default function TemplatesListPage({
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4">
+      <div className="flex items-center gap-4 rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search templates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full max-w-md rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full max-w-md rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-[#081636] placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }}
           />
           <svg
             className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
@@ -207,11 +209,11 @@ export default function TemplatesListPage({
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <div className="rounded-lg bg-red-50 p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
           <p className="text-sm text-red-800">{error}</p>
         </div>
       ) : filteredTemplates.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
+        <div className="rounded-lg bg-white p-12 text-center" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
           <svg
             className="mx-auto h-12 w-12 text-gray-400"
             fill="none"
@@ -225,10 +227,10 @@ export default function TemplatesListPage({
               d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
             />
           </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
+          <h3 className="mt-4 text-lg font-medium text-[#081636]">
             {searchQuery ? 'No templates match your search' : 'No templates yet'}
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-[#081636]">
             {searchQuery
               ? 'Try adjusting your search terms'
               : 'Get started by creating your first template.'}
@@ -239,7 +241,8 @@ export default function TemplatesListPage({
           {filteredTemplates.map((template) => (
             <div
               key={template.id}
-              className="rounded-lg border border-gray-200 bg-white overflow-hidden"
+              className="rounded-lg bg-white overflow-hidden"
+              style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
             >
               {/* Template Header */}
               <div
@@ -260,8 +263,8 @@ export default function TemplatesListPage({
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">{template.name}</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="text-lg font-medium text-[#081636]">{template.name}</h3>
+                    <p className="text-sm text-[#081636]">
                       {template.description || 'No description'}
                     </p>
                   </div>
@@ -292,10 +295,10 @@ export default function TemplatesListPage({
               {expandedTemplate === template.id && (
                 <div className="border-t border-gray-200 bg-gray-50 p-4">
                   {template.fields.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">No fields defined</p>
+                    <p className="text-sm text-[#081636] italic">No fields defined</p>
                   ) : (
                     <div className="space-y-2">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[#081636]">
                         Template Fields
                       </p>
                       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -310,7 +313,7 @@ export default function TemplatesListPage({
                                 {getFieldTypeIcon(field.field_type)}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">
+                                <p className="text-sm font-medium text-[#081636] truncate">
                                   {field.field_name}
                                 </p>
                                 <div className="flex items-center gap-2">
@@ -339,7 +342,7 @@ export default function TemplatesListPage({
       )}
 
       {/* Summary */}
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-[#081636]">
         Showing {filteredTemplates.length} of {templates.length} templates
       </div>
 

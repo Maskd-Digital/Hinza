@@ -50,7 +50,13 @@ interface CompanyFormData {
   }>
 }
 
+const navActiveStyle = {
+  backgroundColor: '#EFF4FF',
+  boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)',
+}
 const TOTAL_STEPS = 5
+
+const stepDropShadow = '0 4px 6px rgba(37, 99, 235, 0.25)'
 
 export default function MultiStepCreateCompany() {
   const router = useRouter()
@@ -228,8 +234,10 @@ export default function MultiStepCreateCompany() {
     setFormData({ ...formData, ...stepData })
   }
 
+  const formDropShadow = '0 4px 6px rgba(37, 99, 235, 0.25)'
+
   return (
-    <div className="max-w-4xl rounded-lg border border-gray-200 bg-white p-6 shadow">
+    <div className="mx-auto max-w-4xl rounded-lg border border-gray-200 bg-white p-6" style={{ boxShadow: formDropShadow }}>
       {/* Progress Indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -237,19 +245,33 @@ export default function MultiStepCreateCompany() {
             <div key={step} className="flex flex-1 items-center">
               <div className="flex flex-col items-center">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
-                    step < currentStep
-                      ? 'border-blue-600 bg-blue-600 text-white'
-                      : step === currentStep
-                        ? 'border-blue-600 bg-white text-blue-600'
-                        : 'border-gray-300 bg-white text-gray-400'
+                  className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                    step === currentStep
+                      ? 'text-white'
+                      : step > currentStep
+                        ? 'bg-white text-[#081636]'
+                        : ''
                   }`}
+                  style={
+                    step < currentStep
+                      ? {
+                          backgroundColor: '#FFFFFF',
+                          boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)',
+                          color: '#0108B8',
+                        }
+                      : step === currentStep
+                        ? {
+                            backgroundColor: '#0108B8',
+                            boxShadow: stepDropShadow,
+                          }
+                        : { boxShadow: stepDropShadow }
+                  }
                 >
                   {step < currentStep ? '✓' : step}
                 </div>
                 <span
                   className={`mt-2 text-xs font-medium ${
-                    step <= currentStep ? 'text-gray-900' : 'text-gray-400'
+                    step <= currentStep ? 'text-[#081636]' : 'text-[#081636]'
                   }`}
                 >
                   {step === 1 && 'General'}
@@ -261,9 +283,8 @@ export default function MultiStepCreateCompany() {
               </div>
               {step < TOTAL_STEPS && (
                 <div
-                  className={`mx-2 h-1 flex-1 ${
-                    step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
+                  className="mx-2 h-1 flex-1 bg-gray-200"
+                style={step < currentStep ? { backgroundColor: '#2563EB' } : undefined}
                 />
               )}
             </div>
@@ -340,7 +361,7 @@ export default function MultiStepCreateCompany() {
           <button
             type="button"
             onClick={handlePrevious}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-[#081636] hover:bg-gray-50"
           >
             Previous
           </button>
@@ -348,14 +369,15 @@ export default function MultiStepCreateCompany() {
             <button
               type="button"
               onClick={handleSkip}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-[#081636] hover:bg-gray-50"
             >
               Skip
             </button>
             <button
               type="button"
               onClick={handleNext}
-              className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="rounded-md px-4 py-2 text-white hover:opacity-90"
+              style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
             >
               Next
             </button>
@@ -368,7 +390,7 @@ export default function MultiStepCreateCompany() {
           <button
             type="button"
             onClick={handlePrevious}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-[#081636] hover:bg-gray-50"
           >
             Previous
           </button>

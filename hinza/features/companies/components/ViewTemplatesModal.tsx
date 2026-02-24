@@ -68,11 +68,11 @@ export default function ViewTemplatesModal({
         )}
 
         {loading ? (
-          <div className="py-8 text-center text-gray-500">
+          <div className="py-8 text-center text-[#081636]">
             Loading templates...
           </div>
         ) : templates.length === 0 ? (
-          <div className="py-8 text-center text-gray-500">
+          <div className="py-8 text-center text-[#081636]">
             No templates found for this company.
           </div>
         ) : (
@@ -83,11 +83,11 @@ export default function ViewTemplatesModal({
                 className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
               >
                 <div className="mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-[#081636]">
                     {template.name}
                   </h3>
                   {template.description && (
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-[#081636]">
                       {template.description}
                     </p>
                   )}
@@ -95,7 +95,7 @@ export default function ViewTemplatesModal({
 
                 {template.fields && template.fields.length > 0 ? (
                   <div className="mt-4">
-                    <p className="mb-2 text-sm font-medium text-gray-700">
+                    <p className="mb-2 text-sm font-medium text-[#081636]">
                       Fields ({template.fields.length}):
                     </p>
                     <div className="space-y-2">
@@ -108,7 +108,7 @@ export default function ViewTemplatesModal({
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-[#081636]">
                                   {field.field_name}
                                 </span>
                                 <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
@@ -123,12 +123,12 @@ export default function ViewTemplatesModal({
                             </div>
                             {field.options && field.options.length > 0 && (
                               <div className="mt-2">
-                                <p className="text-xs text-gray-600">Options:</p>
+                                <p className="text-xs text-[#081636]">Options:</p>
                                 <div className="mt-1 flex flex-wrap gap-1">
                                   {field.options.map((option, idx) => (
                                     <span
                                       key={idx}
-                                      className="inline-flex items-center rounded-md bg-gray-200 px-2 py-0.5 text-xs text-gray-700"
+                                      className="inline-flex items-center rounded-md bg-gray-200 px-2 py-0.5 text-xs text-[#081636]"
                                     >
                                       {option}
                                     </span>
@@ -141,7 +141,7 @@ export default function ViewTemplatesModal({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">No fields defined</p>
+                  <p className="text-sm text-[#081636]">No fields defined</p>
                 )}
               </div>
             ))}
@@ -152,7 +152,7 @@ export default function ViewTemplatesModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-[#081636] hover:bg-gray-200"
           >
             Close
           </button>

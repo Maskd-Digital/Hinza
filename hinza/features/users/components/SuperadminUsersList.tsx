@@ -133,9 +133,10 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
             onClick={() => setActiveTab('users')}
             className={`border-b-2 py-4 px-1 text-sm font-medium ${
               activeTab === 'users'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                ? ''
+                : 'border-transparent text-[#081636] hover:border-gray-300 hover:text-[#081636]'
             }`}
+            style={activeTab === 'users' ? { borderColor: '#2563EB', color: '#2563EB' } : undefined}
           >
             Users ({users.length})
           </button>
@@ -143,9 +144,10 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
             onClick={() => setActiveTab('roles')}
             className={`border-b-2 py-4 px-1 text-sm font-medium ${
               activeTab === 'roles'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                ? ''
+                : 'border-transparent text-[#081636] hover:border-gray-300 hover:text-[#081636]'
             }`}
+            style={activeTab === 'roles' ? { borderColor: '#2563EB', color: '#2563EB' } : undefined}
           >
             Roles ({roles.length})
           </button>
@@ -160,10 +162,11 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
             placeholder={activeTab === 'users' ? 'Search users...' : 'Search roles...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-[#081636] placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           />
           <svg
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#081636]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -177,11 +180,12 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
           </svg>
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-sm text-gray-600">Company:</label>
+          <label className="text-sm text-[#081636]">Company:</label>
           <select
             value={filterCompany}
             onChange={(e) => setFilterCompany(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           >
             <option value="all">All Companies</option>
             {companies.map((company) => (
@@ -195,28 +199,28 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
 
       {/* Users Tab Content */}
       {activeTab === 'users' && (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
           {filteredUsers.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-500">No users found.</p>
+              <p className="text-[#081636]">No users found.</p>
             </div>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Company
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Roles
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Actions
                   </th>
                 </tr>
@@ -230,14 +234,14 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
                           {(user.full_name || user.email || 'U').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-[#081636]">
                             {user.full_name || 'No name'}
                           </p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
+                          <p className="text-sm text-[#081636]">{user.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#081636]">
                       {user.company_id ? getCompanyName(user.company_id) : (
                         <span className="text-purple-600 font-medium">System Admin</span>
                       )}
@@ -265,7 +269,7 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
                             </button>
                           ))
                         ) : (
-                          <span className="text-gray-400 text-sm">No roles</span>
+                          <span className="text-[#081636] text-sm">No roles</span>
                         )}
                       </div>
                     </td>
@@ -303,29 +307,29 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
 
       {/* Roles Tab Content */}
       {activeTab === 'roles' && (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
           {loadingRoles ? (
             <div className="flex h-40 items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
             </div>
           ) : filteredRoles.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-500">No roles found.</p>
+              <p className="text-[#081636]">No roles found.</p>
             </div>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Role Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Company
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Actions
                   </th>
                 </tr>
@@ -343,11 +347,11 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
                           </svg>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{role.name}</p>
+                          <p className="text-sm font-medium text-[#081636]">{role.name}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#081636]">
                       {role.company_id ? getCompanyName(role.company_id) : (
                         <span className="text-purple-600 font-medium">System</span>
                       )}
@@ -363,11 +367,12 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right">
                       {isSuperadminRole(role) ? (
-                        <span className="text-xs text-gray-400">Protected</span>
+                        <span className="text-xs text-[#081636]">Protected</span>
                       ) : (
                         <button
                           onClick={() => handleEditRole(role)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-100 transition-colors"
+                          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:opacity-80"
+                          style={{ color: '#2563EB', backgroundColor: 'rgba(37, 99, 235, 0.1)' }}
                         >
                           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -385,7 +390,7 @@ export default function SuperadminUsersList({ initialUsers }: SuperadminUsersLis
       )}
 
       {/* Summary */}
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-[#081636]">
         {activeTab === 'users' 
           ? `Showing ${filteredUsers.length} of ${users.length} users`
           : `Showing ${filteredRoles.length} of ${roles.length} roles`

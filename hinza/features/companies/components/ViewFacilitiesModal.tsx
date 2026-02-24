@@ -69,10 +69,10 @@ export default function ViewFacilitiesModal({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search facilities by name, city, or country..."
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 text-[#081636] placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <svg
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#081636]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -92,7 +92,7 @@ export default function ViewFacilitiesModal({
             {activeFacilities.length} Active
           </span>
           {inactiveFacilities.length > 0 && (
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-600">
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-[#081636]">
               {inactiveFacilities.length} Inactive
             </span>
           )}
@@ -116,7 +116,7 @@ export default function ViewFacilitiesModal({
         ) : filteredFacilities.length === 0 ? (
           <div className="py-12 text-center">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-[#081636]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -128,7 +128,7 @@ export default function ViewFacilitiesModal({
                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
               />
             </svg>
-            <p className="mt-4 text-gray-500">
+            <p className="mt-4 text-[#081636]">
               {searchTerm ? 'No facilities match your search' : 'No facilities found'}
             </p>
           </div>
@@ -146,15 +146,15 @@ export default function ViewFacilitiesModal({
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-gray-900">{facility.name}</h4>
+                      <h4 className="font-medium text-[#081636]">{facility.name}</h4>
                       {!facility.is_active && (
-                        <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600">
+                        <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-[#081636]">
                           Inactive
                         </span>
                       )}
                     </div>
                     {facility.description && (
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 text-sm text-[#081636]">
                         {facility.description}
                       </p>
                     )}
@@ -163,7 +163,7 @@ export default function ViewFacilitiesModal({
                     {(facility.address || facility.city || facility.state || facility.country) && (
                       <div className="mt-2 flex items-start gap-2">
                         <svg
-                          className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400"
+                          className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#081636]"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -181,7 +181,7 @@ export default function ViewFacilitiesModal({
                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                           />
                         </svg>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[#081636]">
                           {[facility.address, facility.city, facility.state, facility.country, facility.postal_code]
                             .filter(Boolean)
                             .join(', ')}
@@ -192,7 +192,7 @@ export default function ViewFacilitiesModal({
                     {/* Contact Info */}
                     <div className="mt-2 flex flex-wrap gap-4">
                       {facility.phone && (
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <div className="flex items-center gap-1 text-sm text-[#081636]">
                           <svg
                             className="h-4 w-4"
                             fill="none"
@@ -210,7 +210,7 @@ export default function ViewFacilitiesModal({
                         </div>
                       )}
                       {facility.email && (
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <div className="flex items-center gap-1 text-sm text-[#081636]">
                           <svg
                             className="h-4 w-4"
                             fill="none"

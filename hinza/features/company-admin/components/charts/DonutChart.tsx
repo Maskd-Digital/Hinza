@@ -41,7 +41,7 @@ export default function DonutChart({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-gray-900">0</span>
+          <span className="text-2xl font-bold text-[#081636]">0</span>
           <span className="text-xs text-gray-500">{centerLabel || 'Total'}</span>
         </div>
       </div>
@@ -77,7 +77,7 @@ export default function DonutChart({
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-gray-900">
+        <span className="text-2xl font-bold text-[#081636]">
           {centerValue !== undefined ? centerValue : total}
         </span>
         <span className="text-xs text-gray-500">{centerLabel || 'Total'}</span>
