@@ -3,9 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CompanyAdminStats } from '@/app/api/company-admin/stats/route'
-import DonutChart from './charts/DonutChart'
-import BarChart from './charts/BarChart'
-import HorizontalBarChart from './charts/HorizontalBarChart'
 import MiniStatCard from './charts/MiniStatCard'
 import ViewUsersModal from './ViewUsersModal'
 import InviteUserModal from './InviteUserModal'
@@ -61,25 +58,6 @@ export default function CompanyAdminDashboard({
       </div>
     )
   }
-
-  // Prepare chart data
-  const complaintsStatusData = [
-    { label: 'Pending', value: stats.complaintsByStatus.pending, color: '#f59e0b' },
-    { label: 'In Progress', value: stats.complaintsByStatus.in_progress, color: '#3b82f6' },
-    { label: 'Resolved', value: stats.complaintsByStatus.resolved, color: '#10b981' },
-    { label: 'Closed', value: stats.complaintsByStatus.closed, color: '#6b7280' },
-  ]
-
-  const usersStatusData = [
-    { label: 'Active', value: stats.activeUsersCount, color: '#10b981' },
-    { label: 'Inactive', value: stats.inactiveUsersCount, color: '#ef4444' },
-  ]
-
-  const complaintsTimelineData = stats.complaintsTimeline.map((item) => ({
-    label: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    value: item.count,
-    color: '#3b82f6',
-  }))
 
   return (
     <div className="p-6 space-y-6">
@@ -167,123 +145,6 @@ export default function CompanyAdminDashboard({
             </svg>
           }
         />
-      </div>
-
-      {/* Main Charts Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Complaints by Status */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Complaints by Status
-          </h3>
-          <div className="flex items-center justify-center gap-8">
-            <DonutChart
-              data={complaintsStatusData}
-              centerLabel="Total"
-              size={180}
-            />
-            <div className="space-y-2">
-              {complaintsStatusData.map((item) => (
-                <div key={item.label} className="flex items-center gap-2">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-sm text-gray-600">{item.label}</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    ({item.value})
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* User Status */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            User Status
-          </h3>
-          <div className="flex items-center justify-center gap-8">
-            <DonutChart
-              data={usersStatusData}
-              centerLabel="Users"
-              size={180}
-            />
-            <div className="space-y-3">
-              {usersStatusData.map((item) => (
-                <div key={item.label} className="flex items-center gap-3">
-                  <div
-                    className="h-4 w-4 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">
-                      {item.value}
-                    </span>
-                    <span className="ml-2 text-sm text-gray-500">
-                      {item.label}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Complaints Timeline */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Complaints Timeline (Last 30 Days)
-        </h3>
-        <BarChart
-          data={complaintsTimelineData}
-          height={150}
-          showLabels={false}
-        />
-        <div className="mt-2 flex justify-between text-xs text-gray-500">
-          <span>30 days ago</span>
-          <span>Today</span>
-        </div>
-      </div>
-
-      {/* Bottom Grid - Users by Role & Recent Activity */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Users by Role */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Users by Role
-          </h3>
-          {stats.usersByRole.length > 0 ? (
-            <HorizontalBarChart
-              data={stats.usersByRole.map((r) => ({
-                label: r.role_name,
-                value: r.count,
-              }))}
-            />
-          ) : (
-            <p className="text-sm text-gray-500 italic">No roles defined yet</p>
-          )}
-        </div>
-
-        {/* Product Hierarchy */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Product Hierarchy
-          </h3>
-          {stats.productsByLevel.length > 0 ? (
-            <HorizontalBarChart
-              data={stats.productsByLevel.map((p) => ({
-                label: p.level === 0 ? 'Root Categories' : `Level ${p.level}`,
-                value: p.count,
-                color: p.level === 0 ? '#8b5cf6' : p.level === 1 ? '#3b82f6' : '#10b981',
-              }))}
-            />
-          ) : (
-            <p className="text-sm text-gray-500 italic">No products added yet</p>
-          )}
-        </div>
       </div>
 
       {/* Recent Activity */}
