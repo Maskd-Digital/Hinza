@@ -44,7 +44,7 @@ export default function BarChart({
                 title={`${item.label}: ${item.value}`}
               />
               {showLabels && (
-                <span className="mt-1 text-[10px] text-gray-500 truncate w-full text-center">
+                <span className="mt-1 text-[10px] text-[#081636] truncate w-full text-center">
                   {item.label}
                 </span>
               )}

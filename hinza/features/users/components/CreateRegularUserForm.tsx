@@ -108,7 +108,7 @@ export default function CreateRegularUserForm() {
   }
 
   return (
-    <div className="max-w-2xl rounded-lg border border-gray-200 bg-white p-6 shadow">
+    <div className="mx-auto max-w-2xl rounded-lg border border-gray-200 bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="rounded-md bg-red-50 p-4">
@@ -119,7 +119,7 @@ export default function CreateRegularUserForm() {
         <div>
           <label
             htmlFor="full_name"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Full Name <span className="text-red-500">*</span>
           </label>
@@ -131,15 +131,16 @@ export default function CreateRegularUserForm() {
             onChange={(e) =>
               setFormData({ ...formData, full_name: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="Enter user full name"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           />
         </div>
 
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Email <span className="text-red-500">*</span>
           </label>
@@ -151,15 +152,16 @@ export default function CreateRegularUserForm() {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="Enter user email"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           />
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Initial Password <span className="text-red-500">*</span>
           </label>
@@ -173,13 +175,14 @@ export default function CreateRegularUserForm() {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="Minimum 6 characters"
+              style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#081636] hover:text-[#081636]"
             >
               {showPassword ? (
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,7 +196,7 @@ export default function CreateRegularUserForm() {
               )}
             </button>
           </div>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-[#081636]">
             User can change this password after logging in
           </p>
         </div>
@@ -201,7 +204,7 @@ export default function CreateRegularUserForm() {
         <div>
           <label
             htmlFor="confirmPassword"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Confirm Password <span className="text-red-500">*</span>
           </label>
@@ -214,12 +217,13 @@ export default function CreateRegularUserForm() {
             onChange={(e) =>
               setFormData({ ...formData, confirmPassword: e.target.value })
             }
-            className={`mt-1 block w-full rounded-md border px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:outline-none focus:ring-1 ${
+            className={`mt-1 block w-full rounded-md border px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:outline-none focus:ring-1 ${
               formData.confirmPassword && formData.password !== formData.confirmPassword
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
             }`}
             placeholder="Re-enter password"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           />
           {formData.confirmPassword && formData.password !== formData.confirmPassword && (
             <p className="mt-1 text-xs text-red-500">Passwords do not match</p>
@@ -229,7 +233,7 @@ export default function CreateRegularUserForm() {
         <div>
           <label
             htmlFor="company_id"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Company <span className="text-red-500">*</span>
           </label>
@@ -240,8 +244,11 @@ export default function CreateRegularUserForm() {
             onChange={(e) =>
               setFormData({ ...formData, company_id: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className={`mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 ${
+              !formData.company_id ? 'text-[#081636]/50' : 'text-[#081636]'
+            }`}
             disabled={loadingCompanies}
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           >
             <option value="">
               {loadingCompanies ? 'Loading companies...' : 'Select a company'}
@@ -257,7 +264,7 @@ export default function CreateRegularUserForm() {
         <div>
           <label
             htmlFor="role_id"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-[#081636]"
           >
             Role <span className="text-red-500">*</span>
           </label>
@@ -268,8 +275,11 @@ export default function CreateRegularUserForm() {
             onChange={(e) =>
               setFormData({ ...formData, role_id: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className={`mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 ${
+              !formData.role_id ? 'text-[#081636]/50' : 'text-[#081636]'
+            }`}
             disabled={!formData.company_id || loadingRoles}
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
           >
             <option value="">
               {!formData.company_id
@@ -287,7 +297,7 @@ export default function CreateRegularUserForm() {
             ))}
           </select>
           {formData.company_id && roles.length === 0 && !loadingRoles && (
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-[#081636] opacity-100">
               No roles found for this company. Please create roles first.
             </p>
           )}
@@ -297,7 +307,7 @@ export default function CreateRegularUserForm() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-[#081636] hover:bg-gray-50"
             disabled={loading}
           >
             Cancel
@@ -305,7 +315,8 @@ export default function CreateRegularUserForm() {
           <button
             type="submit"
             disabled={loading || !formData.company_id || !formData.role_id || (formData.password !== formData.confirmPassword)}
-            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md px-4 py-2 text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.5)' }}
           >
             {loading ? 'Creating...' : 'Create User'}
           </button>

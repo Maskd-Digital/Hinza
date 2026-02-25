@@ -39,10 +39,10 @@ export default async function DashboardPage() {
 
   return (
     <DashboardLayout permissions={user.permissions}>
-      <div className="p-6">
+      <div className="min-h-full p-6" style={{ backgroundColor: '#EFF4FF' }}>
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">System Administration</h1>
-          <p className="mt-1 text-gray-600">
+          <h1 className="text-2xl font-bold" style={{ color: '#2563EB' }}>System Administration</h1>
+          <p className="mt-1 text-[#081636]">
             Welcome, <span className="font-medium">{user.full_name || user.email}</span> - Managing all companies and system users
           </p>
         </div>
@@ -118,21 +118,28 @@ export default async function DashboardPage() {
         )}
 
         {/* User Roles */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Your Roles</h2>
+        <div
+          className="rounded-lg border border-gray-200 p-6"
+          style={{
+            backgroundColor: '#FFFFFF',
+            boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.25), 0 2px 6px -2px rgba(37, 99, 235, 0.25)',
+          }}
+        >
+          <h2 className="text-lg font-semibold text-[#081636]">Your Roles</h2>
           {user.roles.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
               {user.roles.map((role) => (
                 <span
                   key={role.id}
-                  className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800"
+                  className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+                  style={{ backgroundColor: 'rgba(37, 99, 235, 0.15)', color: '#2563EB' }}
                 >
                   {role.name}
                 </span>
               ))}
             </div>
           ) : (
-            <p className="mt-2 text-sm text-gray-500 italic">
+            <p className="mt-2 text-sm text-[#081636] italic">
               No roles assigned. Please contact administrator.
             </p>
           )}

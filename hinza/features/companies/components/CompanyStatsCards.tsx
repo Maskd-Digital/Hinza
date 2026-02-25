@@ -136,8 +136,8 @@ export default function CompanyStatsCards({
           <>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-[#081636]">{stat.title}</p>
+                <p className="mt-2 text-3xl font-bold text-[#081636]">
                   {stat.count}
                 </p>
               </div>
@@ -145,7 +145,7 @@ export default function CompanyStatsCards({
                 {stat.icon}
               </div>
             </div>
-            <div className="mt-4 flex items-center text-sm text-gray-500">
+            <div className="mt-4 flex items-center text-sm text-[#081636]">
               <span>View all</span>
               <svg
                 className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"

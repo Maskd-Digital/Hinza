@@ -189,15 +189,16 @@ export default function FacilitiesListPage({
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Facilities</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-[#081636]">Facilities</h1>
+          <p className="text-sm text-[#081636]">
             Manage locations and facilities for {companyName}
           </p>
         </div>
         {canCreate && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
           >
             <svg
               className="h-4 w-4"
@@ -219,19 +220,19 @@ export default function FacilitiesListPage({
 
       {/* Stats */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm text-gray-500">Total Facilities</p>
-          <p className="text-2xl font-bold text-gray-900">{facilities.length}</p>
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm text-[#081636]">Total Facilities</p>
+          <p className="text-2xl font-bold text-[#081636]">{facilities.length}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm text-gray-500">Active</p>
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm text-[#081636]">Active</p>
           <p className="text-2xl font-bold text-green-600">
             {facilities.filter((f) => f.is_active).length}
           </p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm text-gray-500">Inactive</p>
-          <p className="text-2xl font-bold text-gray-400">
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm text-[#081636]">Inactive</p>
+          <p className="text-2xl font-bold text-[#081636]">
             {facilities.filter((f) => !f.is_active).length}
           </p>
         </div>
@@ -245,10 +246,11 @@ export default function FacilitiesListPage({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search facilities by name, city, or country..."
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 text-[#081636] placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }}
           />
           <svg
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#081636]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -269,7 +271,7 @@ export default function FacilitiesListPage({
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center">
+        <div className="rounded-lg bg-red-50 p-4 text-center" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
           <p className="text-sm text-red-800">{error}</p>
           <button
             onClick={fetchFacilities}
@@ -279,9 +281,9 @@ export default function FacilitiesListPage({
           </button>
         </div>
       ) : filteredFacilities.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white py-12 text-center">
+        <div className="rounded-lg bg-white py-12 text-center" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
           <svg
-            className="mx-auto h-12 w-12 text-gray-400"
+            className="mx-auto h-12 w-12 text-[#081636]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -293,13 +295,14 @@ export default function FacilitiesListPage({
               d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
             />
           </svg>
-          <p className="mt-4 text-gray-500">
+          <p className="mt-4 text-[#081636]">
             {searchTerm ? 'No facilities match your search' : 'No facilities yet'}
           </p>
           {canCreate && !searchTerm && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
             >
               Add First Facility
             </button>
@@ -310,22 +313,23 @@ export default function FacilitiesListPage({
           {filteredFacilities.map((facility) => (
             <div
               key={facility.id}
-              className={`rounded-lg border bg-white p-4 ${
-                facility.is_active ? 'border-gray-200' : 'border-gray-100 bg-gray-50'
+              className={`rounded-lg bg-white p-4 ${
+                !facility.is_active ? 'bg-gray-50' : ''
               }`}
+              style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-gray-900">{facility.name}</h3>
+                    <h3 className="font-medium text-[#081636]">{facility.name}</h3>
                     {!facility.is_active && (
-                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600">
+                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-[#081636]">
                         Inactive
                       </span>
                     )}
                   </div>
                   {facility.description && (
-                    <p className="mt-1 text-sm text-gray-500">{facility.description}</p>
+                    <p className="mt-1 text-sm text-[#081636]">{facility.description}</p>
                   )}
 
                   {/* Location */}
@@ -335,7 +339,7 @@ export default function FacilitiesListPage({
                     facility.country) && (
                     <div className="mt-2 flex items-start gap-2">
                       <svg
-                        className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400"
+                        className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#081636]"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -353,7 +357,7 @@ export default function FacilitiesListPage({
                           d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-[#081636]">
                         {[
                           facility.address,
                           facility.city,
@@ -370,7 +374,7 @@ export default function FacilitiesListPage({
                   {/* Contact */}
                   <div className="mt-2 flex flex-wrap gap-4">
                     {facility.phone && (
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <div className="flex items-center gap-1 text-sm text-[#081636]">
                         <svg
                           className="h-4 w-4"
                           fill="none"
@@ -388,7 +392,7 @@ export default function FacilitiesListPage({
                       </div>
                     )}
                     {facility.email && (
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <div className="flex items-center gap-1 text-sm text-[#081636]">
                         <svg
                           className="h-4 w-4"
                           fill="none"
@@ -417,7 +421,7 @@ export default function FacilitiesListPage({
                           onClick={() => handleToggleActive(facility)}
                           className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
                             facility.is_active
-                              ? 'text-gray-600 hover:bg-gray-100'
+                              ? 'text-[#081636] hover:bg-gray-100'
                               : 'text-green-600 hover:bg-green-50'
                           }`}
                         >
@@ -425,7 +429,8 @@ export default function FacilitiesListPage({
                         </button>
                         <button
                           onClick={() => handleEdit(facility)}
-                          className="rounded-lg px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                          className="rounded-lg px-3 py-1.5 text-sm font-medium hover:opacity-80"
+                          style={{ color: '#2563EB' }}
                         >
                           Edit
                         </button>
@@ -452,12 +457,12 @@ export default function FacilitiesListPage({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white p-6 shadow-xl mx-4">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-[#081636]">
                 {editingFacility ? 'Edit Facility' : 'Add New Facility'}
               </h2>
               <button
                 onClick={resetForm}
-                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                className="rounded-lg p-1 text-[#081636] hover:bg-gray-100 hover:text-[#081636]"
               >
                 <svg
                   className="h-6 w-6"
@@ -477,14 +482,14 @@ export default function FacilitiesListPage({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {formError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                <div className="rounded-lg bg-red-50 p-3" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
                   <p className="text-sm text-red-800">{formError}</p>
                 </div>
               )}
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     Facility Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -493,14 +498,14 @@ export default function FacilitiesListPage({
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="e.g., Headquarters, Branch Office"
                     required
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     Description
                   </label>
                   <textarea
@@ -509,13 +514,13 @@ export default function FacilitiesListPage({
                       setFormData({ ...formData, description: e.target.value })
                     }
                     rows={2}
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Brief description"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     Address
                   </label>
                   <input
@@ -524,13 +529,13 @@ export default function FacilitiesListPage({
                     onChange={(e) =>
                       setFormData({ ...formData, address: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Street address"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     City
                   </label>
                   <input
@@ -539,13 +544,13 @@ export default function FacilitiesListPage({
                     onChange={(e) =>
                       setFormData({ ...formData, city: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="City"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     State/Province
                   </label>
                   <input
@@ -554,13 +559,13 @@ export default function FacilitiesListPage({
                     onChange={(e) =>
                       setFormData({ ...formData, state: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="State or Province"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     Country
                   </label>
                   <input
@@ -569,13 +574,13 @@ export default function FacilitiesListPage({
                     onChange={(e) =>
                       setFormData({ ...formData, country: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Country"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     Postal Code
                   </label>
                   <input
@@ -584,13 +589,13 @@ export default function FacilitiesListPage({
                     onChange={(e) =>
                       setFormData({ ...formData, postal_code: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Postal/ZIP code"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     Phone
                   </label>
                   <input
@@ -599,13 +604,13 @@ export default function FacilitiesListPage({
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Phone number"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-[#081636]">
                     Email
                   </label>
                   <input
@@ -614,7 +619,7 @@ export default function FacilitiesListPage({
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Facility email"
                   />
                 </div>
@@ -624,14 +629,15 @@ export default function FacilitiesListPage({
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-[#081636] hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formLoading || !formData.name.trim()}
-                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
                 >
                   {formLoading ? (
                     <>

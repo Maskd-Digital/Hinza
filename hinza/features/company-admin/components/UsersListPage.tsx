@@ -87,15 +87,16 @@ export default function UsersListPage({
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-[#081636]">Users</h1>
+          <p className="text-sm text-[#081636]">
             Manage users and their access
           </p>
         </div>
         {canCreateUsers && (
           <button
             onClick={() => setIsInviteModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
           >
             <svg
               className="h-4 w-4"
@@ -123,7 +124,8 @@ export default function UsersListPage({
             placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-[#081636] placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }}
           />
           <svg
             className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
@@ -146,9 +148,14 @@ export default function UsersListPage({
               onClick={() => setFilterStatus(status)}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 filterStatus === status
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'text-white'
+                  : 'text-gray-700 hover:opacity-90'
               }`}
+              style={
+                filterStatus === status
+                  ? { backgroundColor: '#0108B8', boxShadow: 'inset 0 2px 4px rgba(8, 22, 54, 0.25)' }
+                  : { backgroundColor: '#FFFFFF', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }
+              }
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </button>
@@ -158,18 +165,18 @@ export default function UsersListPage({
 
       {/* Stats Cards */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <p className="text-sm text-gray-500">Total Users</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{users.length}</p>
+        <div className="rounded-xl bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm text-[#081636]">Total Users</p>
+          <p className="mt-1 text-2xl font-bold text-[#081636]">{users.length}</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <p className="text-sm text-gray-500">Active Users</p>
+        <div className="rounded-xl bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm text-[#081636]">Active Users</p>
           <p className="mt-1 text-2xl font-bold text-green-600">
             {users.filter((u) => u.is_active).length}
           </p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <p className="text-sm text-gray-500">Inactive Users</p>
+        <div className="rounded-xl bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm text-[#081636]">Inactive Users</p>
           <p className="mt-1 text-2xl font-bold text-red-600">
             {users.filter((u) => !u.is_active).length}
           </p>
@@ -177,14 +184,14 @@ export default function UsersListPage({
       </div>
 
       {/* Users Table */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl overflow-hidden bg-white" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
         {loading ? (
           <div className="flex h-64 items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
           </div>
         ) : error ? (
           <div className="p-6">
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <div className="rounded-lg bg-red-50 p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
               <p className="text-sm text-red-800">{error}</p>
             </div>
           </div>
@@ -203,7 +210,7 @@ export default function UsersListPage({
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-[#081636]">
               {searchQuery || filterStatus !== 'all'
                 ? 'No users match your filters'
                 : 'No users found'}
@@ -211,7 +218,8 @@ export default function UsersListPage({
             {canCreateUsers && !searchQuery && filterStatus === 'all' && (
               <button
                 onClick={() => setIsInviteModalOpen(true)}
-                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
               >
                 Add your first user
               </button>
@@ -222,16 +230,16 @@ export default function UsersListPage({
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Roles
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Actions
                   </th>
                 </tr>
@@ -247,10 +255,10 @@ export default function UsersListPage({
                             .toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-[#081636]">
                             {user.full_name || 'No name'}
                           </p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
+                          <p className="text-sm text-[#081636]">{user.email}</p>
                         </div>
                       </div>
                     </td>
@@ -313,7 +321,7 @@ export default function UsersListPage({
       </div>
 
       {/* Footer */}
-      <div className="mt-4 text-sm text-gray-500">
+      <div className="mt-4 text-sm text-[#081636]">
         Showing {filteredUsers.length} of {users.length} users
       </div>
 

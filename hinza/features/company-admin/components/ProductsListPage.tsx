@@ -121,7 +121,7 @@ export default function ProductsListPage({
           {hasChildren ? (
             <button
               onClick={() => toggleExpand(node.id)}
-              className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              className="flex h-6 w-6 items-center justify-center rounded text-[#081636] hover:bg-gray-100 hover:text-[#081636]"
             >
               <svg
                 className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
@@ -148,7 +148,7 @@ export default function ProductsListPage({
                   ? 'bg-green-100 text-green-600'
                   : node.level === 2
                     ? 'bg-purple-100 text-purple-600'
-                    : 'bg-gray-100 text-gray-600'
+                    : 'bg-gray-100 text-[#081636]'
             }`}
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,9 +161,9 @@ export default function ProductsListPage({
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{node.name}</p>
+            <p className="text-sm font-medium text-[#081636] truncate">{node.name}</p>
             {node.description && (
-              <p className="text-xs text-gray-500 truncate">{node.description}</p>
+              <p className="text-xs text-[#081636] truncate">{node.description}</p>
             )}
           </div>
           <span
@@ -174,7 +174,7 @@ export default function ProductsListPage({
                   ? 'bg-green-100 text-green-700'
                   : node.level === 2
                     ? 'bg-purple-100 text-purple-700'
-                    : 'bg-gray-100 text-gray-700'
+                    : 'bg-gray-100 text-[#081636]'
             }`}
           >
             Level {node.level}
@@ -203,13 +203,13 @@ export default function ProductsListPage({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-[#081636]">Products</h1>
+          <p className="mt-1 text-sm text-[#081636]">
             Manage your product hierarchy
           </p>
         </div>
         {canCreateProducts && (
-          <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90" style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -220,30 +220,31 @@ export default function ProductsListPage({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm font-medium text-gray-500">Total Products</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{stats.total}</p>
+        <div className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <p className="text-sm font-medium text-[#081636]">Total Products</p>
+          <p className="mt-1 text-2xl font-semibold text-[#081636]">{stats.total}</p>
         </div>
         {stats.byLevel.slice(0, 3).map(([level, count]) => (
-          <div key={level} className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-sm font-medium text-gray-500">Level {level}</p>
-            <p className="mt-1 text-2xl font-semibold text-gray-900">{count}</p>
+          <div key={level} className="rounded-lg bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+            <p className="text-sm font-medium text-[#081636]">Level {level}</p>
+            <p className="mt-1 text-2xl font-semibold text-[#081636]">{count}</p>
           </div>
         ))}
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg bg-white p-4 sm:flex-row sm:items-center sm:justify-between" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full max-w-md rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full max-w-md rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-[#081636] placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }}
           />
           <svg
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#081636]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -257,36 +258,52 @@ export default function ProductsListPage({
           </svg>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={expandAll}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Expand All
-          </button>
-          <button
-            onClick={collapseAll}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Collapse All
-          </button>
-          <div className="flex rounded-lg border border-gray-300">
+          {viewMode === 'tree' && (
+            <>
+              <button
+                onClick={expandAll}
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-[#081636] hover:opacity-90"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
+              >
+                Expand All
+              </button>
+              <button
+                onClick={collapseAll}
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-[#081636] hover:opacity-90"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
+              >
+                Collapse All
+              </button>
+            </>
+          )}
+          <div className="flex gap-2">
             <button
               onClick={() => setViewMode('tree')}
-              className={`px-3 py-1.5 text-sm font-medium ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 viewMode === 'tree'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-50'
-              } rounded-l-lg`}
+                  ? 'text-white'
+                  : 'text-gray-700 hover:opacity-90'
+              }`}
+              style={
+                viewMode === 'tree'
+                  ? { backgroundColor: '#0108B8', boxShadow: 'inset 0 2px 4px rgba(8, 22, 54, 0.25)' }
+                  : { backgroundColor: '#FFFFFF', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }
+              }
             >
               Tree
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-3 py-1.5 text-sm font-medium ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 viewMode === 'list'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-50'
-              } rounded-r-lg`}
+                  ? 'text-white'
+                  : 'text-gray-700 hover:opacity-90'
+              }`}
+              style={
+                viewMode === 'list'
+                  ? { backgroundColor: '#0108B8', boxShadow: 'inset 0 2px 4px rgba(8, 22, 54, 0.25)' }
+                  : { backgroundColor: '#FFFFFF', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }
+              }
             >
               List
             </button>
@@ -295,21 +312,21 @@ export default function ProductsListPage({
       </div>
 
       {/* Content */}
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="rounded-lg bg-white overflow-hidden" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
         {loading ? (
           <div className="flex h-64 items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
           </div>
         ) : error ? (
           <div className="p-6">
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <div className="rounded-lg bg-red-50 p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
               <p className="text-sm text-red-800">{error}</p>
             </div>
           </div>
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center">
             <svg
-              className="h-12 w-12 text-gray-400"
+              className="h-12 w-12 text-[#081636]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -321,8 +338,8 @@ export default function ProductsListPage({
                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
               />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No products yet</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <h3 className="mt-4 text-lg font-medium text-[#081636]">No products yet</h3>
+            <p className="mt-1 text-sm text-[#081636]">
               Get started by adding your first product.
             </p>
           </div>
@@ -343,7 +360,7 @@ export default function ProductsListPage({
                           ? 'bg-green-100 text-green-600'
                           : product.level === 2
                             ? 'bg-purple-100 text-purple-600'
-                            : 'bg-gray-100 text-gray-600'
+                            : 'bg-gray-100 text-[#081636]'
                     }`}
                   >
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,9 +373,9 @@ export default function ProductsListPage({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{product.name}</p>
+                    <p className="text-sm font-medium text-[#081636]">{product.name}</p>
                     {product.description && (
-                      <p className="text-xs text-gray-500 truncate">{product.description}</p>
+                      <p className="text-xs text-[#081636] truncate">{product.description}</p>
                     )}
                   </div>
                   <span
@@ -369,7 +386,7 @@ export default function ProductsListPage({
                           ? 'bg-green-100 text-green-700'
                           : product.level === 2
                             ? 'bg-purple-100 text-purple-700'
-                            : 'bg-gray-100 text-gray-700'
+                            : 'bg-gray-100 text-[#081636]'
                     }`}
                   >
                     Level {product.level}
@@ -385,16 +402,16 @@ export default function ProductsListPage({
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Product
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Description
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Level
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Parent
                   </th>
                 </tr>
@@ -414,7 +431,7 @@ export default function ProductsListPage({
                                   ? 'bg-green-100 text-green-600'
                                   : product.level === 2
                                     ? 'bg-purple-100 text-purple-600'
-                                    : 'bg-gray-100 text-gray-600'
+                                    : 'bg-gray-100 text-[#081636]'
                             }`}
                           >
                             <svg
@@ -431,12 +448,12 @@ export default function ProductsListPage({
                               />
                             </svg>
                           </div>
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-[#081636]">
                             {product.name}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-[#081636]">
                         {product.description || '-'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
@@ -448,13 +465,13 @@ export default function ProductsListPage({
                                 ? 'bg-green-100 text-green-700'
                                 : product.level === 2
                                   ? 'bg-purple-100 text-purple-700'
-                                  : 'bg-gray-100 text-gray-700'
+                                  : 'bg-gray-100 text-[#081636]'
                           }`}
                         >
                           Level {product.level}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-[#081636]">
                         {parent ? parent.name : '-'}
                       </td>
                     </tr>
@@ -467,7 +484,7 @@ export default function ProductsListPage({
       </div>
 
       {/* Summary */}
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-[#081636]">
         Showing {searchQuery ? filteredProducts.length : products.length} products
       </div>
     </div>

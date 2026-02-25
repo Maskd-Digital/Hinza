@@ -56,7 +56,7 @@ export default function ViewProductsModal({
           <div className="flex-shrink-0 pt-1">
             {level > 0 && (
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-[#081636]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -72,15 +72,15 @@ export default function ViewProductsModal({
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-900">{node.name}</span>
+              <span className="font-medium text-[#081636]">{node.name}</span>
               <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
                 Level {node.level}
               </span>
             </div>
             {node.description && (
-              <p className="mt-1 text-sm text-gray-600">{node.description}</p>
+              <p className="mt-1 text-sm text-[#081636]">{node.description}</p>
             )}
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-[#081636]">
               Path: {node.path}
             </p>
           </div>
@@ -104,20 +104,20 @@ export default function ViewProductsModal({
         )}
 
         {loading ? (
-          <div className="py-8 text-center text-gray-500">
+          <div className="py-8 text-center text-[#081636]">
             Loading products...
           </div>
         ) : products.length === 0 ? (
-          <div className="py-8 text-center text-gray-500">
+          <div className="py-8 text-center text-[#081636]">
             No products found for this company.
           </div>
         ) : (
           <div className="space-y-2">
             <div className="mb-4 flex items-center justify-between rounded-lg bg-gray-50 p-3">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-[#081636]">
                 Total Products: {products.length}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-[#081636]">
                 Root Products: {productTree.length}
               </p>
             </div>
@@ -125,7 +125,7 @@ export default function ViewProductsModal({
               {productTree.length > 0 ? (
                 renderProductTree(productTree)
               ) : (
-                <p className="text-center text-gray-500">No products to display</p>
+                <p className="text-center text-[#081636]">No products to display</p>
               )}
             </div>
           </div>
@@ -135,7 +135,7 @@ export default function ViewProductsModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-[#081636] hover:bg-gray-200"
           >
             Close
           </button>

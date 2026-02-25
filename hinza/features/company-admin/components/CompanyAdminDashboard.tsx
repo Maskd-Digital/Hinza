@@ -53,7 +53,7 @@ export default function CompanyAdminDashboard({
 
   if (error || !stats) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+      <div className="rounded-lg bg-red-50 p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
         <p className="text-red-800">{error || 'Failed to load dashboard'}</p>
       </div>
     )
@@ -64,13 +64,14 @@ export default function CompanyAdminDashboard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500">Overview for {companyName}</p>
+          <h1 className="text-2xl font-bold text-[#081636]">Dashboard</h1>
+          <p className="text-sm text-[#081636]">Overview for {companyName}</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => setIsInviteUserModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -147,15 +148,133 @@ export default function CompanyAdminDashboard({
         />
       </div>
 
+      {/* Main Charts Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Complaints by Status */}
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="text-lg font-semibold text-[#081636] mb-4">
+            Complaints by Status
+          </h3>
+          <div className="flex items-center justify-center gap-8">
+            <DonutChart
+              data={complaintsStatusData}
+              centerLabel="Total"
+              size={180}
+            />
+            <div className="space-y-2">
+              {complaintsStatusData.map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-sm text-[#081636]">{item.label}</span>
+                  <span className="text-sm font-medium text-[#081636]">
+                    ({item.value})
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* User Status */}
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="text-lg font-semibold text-[#081636] mb-4">
+            User Status
+          </h3>
+          <div className="flex items-center justify-center gap-8">
+            <DonutChart
+              data={usersStatusData}
+              centerLabel="Users"
+              size={180}
+            />
+            <div className="space-y-3">
+              {usersStatusData.map((item) => (
+                <div key={item.label} className="flex items-center gap-3">
+                  <div
+                    className="h-4 w-4 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <div>
+                    <span className="text-sm font-medium text-[#081636]">
+                      {item.value}
+                    </span>
+                    <span className="ml-2 text-sm text-[#081636]">
+                      {item.label}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Complaints Timeline */}
+      <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+<h3 className="text-lg font-semibold text-[#081636] mb-4">
+        Complaints Timeline (Last 30 Days)
+        </h3>
+        <BarChart
+          data={complaintsTimelineData}
+          height={150}
+          showLabels={false}
+        />
+        <div className="mt-2 flex justify-between text-xs text-[#081636]">
+          <span>30 days ago</span>
+          <span>Today</span>
+        </div>
+      </div>
+
+      {/* Bottom Grid - Users by Role & Recent Activity */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Users by Role */}
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="text-lg font-semibold text-[#081636] mb-4">
+            Users by Role
+          </h3>
+          {stats.usersByRole.length > 0 ? (
+            <HorizontalBarChart
+              data={stats.usersByRole.map((r) => ({
+                label: r.role_name,
+                value: r.count,
+              }))}
+            />
+          ) : (
+            <p className="text-sm text-[#081636] italic">No roles defined yet</p>
+          )}
+        </div>
+
+        {/* Product Hierarchy */}
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="text-lg font-semibold text-[#081636] mb-4">
+            Product Hierarchy
+          </h3>
+          {stats.productsByLevel.length > 0 ? (
+            <HorizontalBarChart
+              data={stats.productsByLevel.map((p) => ({
+                label: p.level === 0 ? 'Root Categories' : `Level ${p.level}`,
+                value: p.count,
+                color: p.level === 0 ? '#8b5cf6' : p.level === 1 ? '#3b82f6' : '#10b981',
+              }))}
+            />
+          ) : (
+            <p className="text-sm text-[#081636] italic">No products added yet</p>
+          )}
+        </div>
+      </div>
+
       {/* Recent Activity */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent Users */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Users</h3>
+            <h3 className="text-lg font-semibold text-[#081636]">Recent Users</h3>
             <button
               onClick={() => setIsViewUsersModalOpen(true)}
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm hover:opacity-80"
+              style={{ color: '#2563EB' }}
             >
               View all
             </button>
@@ -165,17 +284,17 @@ export default function CompanyAdminDashboard({
               {stats.recentUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3"
+                  className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold">
                       {(user.full_name || user.email || 'U').charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-[#081636]">
                         {user.full_name || 'No name'}
                       </p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
+                      <p className="text-xs text-[#081636]">{user.email}</p>
                     </div>
                   </div>
                   <span
@@ -191,17 +310,17 @@ export default function CompanyAdminDashboard({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 italic">No users yet</p>
+            <p className="text-sm text-[#081636] italic">No users yet</p>
           )}
         </div>
 
         {/* Recent Complaints */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-[#081636]">
               Recent Complaints
             </h3>
-            <button className="text-sm text-blue-600 hover:text-blue-700">
+            <button className="text-sm hover:opacity-80" style={{ color: '#2563EB' }}>
               View all
             </button>
           </div>
@@ -210,13 +329,13 @@ export default function CompanyAdminDashboard({
               {stats.recentComplaints.map((complaint) => (
                 <div
                   key={complaint.id}
-                  className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3"
+                  className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">
+                    <p className="truncate text-sm font-medium text-[#081636]">
                       {complaint.title}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-[#081636]">
                       {new Date(complaint.created_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -227,7 +346,7 @@ export default function CompanyAdminDashboard({
                         : complaint.status === 'in_progress'
                         ? 'bg-blue-100 text-blue-700'
                         : complaint.status === 'closed'
-                        ? 'bg-gray-100 text-gray-700'
+                        ? 'bg-gray-100 text-[#081636]'
                         : 'bg-amber-100 text-amber-700'
                     }`}
                   >
@@ -237,7 +356,7 @@ export default function CompanyAdminDashboard({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 italic">No complaints yet</p>
+            <p className="text-sm text-[#081636] italic">No complaints yet</p>
           )}
         </div>
       </div>

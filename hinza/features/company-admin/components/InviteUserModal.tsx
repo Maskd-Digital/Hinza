@@ -133,7 +133,7 @@ export default function InviteUserModal({
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="user@example.com"
           />
         </div>
@@ -154,7 +154,7 @@ export default function InviteUserModal({
             onChange={(e) =>
               setFormData({ ...formData, full_name: e.target.value })
             }
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="John Doe"
           />
         </div>
@@ -177,7 +177,7 @@ export default function InviteUserModal({
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Min 6 characters"
             />
             <button
@@ -216,7 +216,7 @@ export default function InviteUserModal({
             onChange={(e) =>
               setFormData({ ...formData, confirmPassword: e.target.value })
             }
-            className={`mt-1 block w-full rounded-lg border px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:outline-none focus:ring-1 ${
+            className={`mt-1 block w-full rounded-lg border px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:outline-none focus:ring-1 ${
               formData.confirmPassword && formData.password !== formData.confirmPassword
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -246,17 +246,17 @@ export default function InviteUserModal({
                     onChange={() => handleRoleToggle(role.id)}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-900">{role.name}</span>
+                  <span className="text-sm text-[#081636]">{role.name}</span>
                 </label>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 italic">
+            <p className="text-sm text-[#081636] italic">
               No roles available. Create roles first.
             </p>
           )}
           {formData.role_ids.length > 0 && (
-            <p className="mt-2 text-xs text-gray-500">
+            <p className="mt-2 text-xs text-[#081636]">
               {formData.role_ids.length} role(s) selected
             </p>
           )}
@@ -296,7 +296,8 @@ export default function InviteUserModal({
           <button
             type="submit"
             disabled={loading || (formData.password !== formData.confirmPassword)}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: '#2563EB' }}
           >
             {loading ? (
               <>

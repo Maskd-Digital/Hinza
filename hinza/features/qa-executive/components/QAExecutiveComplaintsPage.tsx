@@ -158,12 +158,12 @@ export default function QAExecutiveComplaintsPage({
   }, [complaints])
 
   const getStatusColor = (s: string) => {
-    if (!s) return 'bg-gray-100 text-gray-700'
+    if (!s) return 'bg-gray-100 text-[#081636]'
     const lower = s.toLowerCase()
     if (lower.includes('open') || lower.includes('pending')) return 'bg-yellow-100 text-yellow-700'
     if (lower.includes('progress')) return 'bg-blue-100 text-blue-700'
     if (lower.includes('resolved') || lower.includes('closed')) return 'bg-green-100 text-green-700'
-    return 'bg-gray-100 text-gray-700'
+    return 'bg-gray-100 text-[#081636]'
   }
 
   const formatDate = (d: string | null) =>
@@ -182,44 +182,44 @@ export default function QAExecutiveComplaintsPage({
   }
 
   return (
-    <div className="p-6">
+    <div className="min-h-full bg-[#EFF4FF] p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Assigned Complaints</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-[#081636]">My Assigned Complaints</h1>
+        <p className="text-sm text-[#081636]">
           Work on complaints assigned to you — deadline, documents, resolve, send for verification
         </p>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm font-medium text-gray-500">Total</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{stats.total}</p>
+        <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+          <p className="text-sm font-medium text-[#081636]">Total</p>
+          <p className="mt-1 text-2xl font-semibold text-[#081636]">{stats.total}</p>
         </div>
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <p className="text-sm font-medium text-yellow-700">Open</p>
-          <p className="mt-1 text-2xl font-semibold text-yellow-800">{stats.open}</p>
+        <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+          <p className="text-sm font-medium text-[#FF9742]">Open</p>
+          <p className="mt-1 text-2xl font-semibold text-[#FF9742]">{stats.open}</p>
         </div>
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-          <p className="text-sm font-medium text-green-700">Resolved</p>
-          <p className="mt-1 text-2xl font-semibold text-green-800">{stats.resolved}</p>
+        <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+          <p className="text-sm font-medium text-[#0FB200]">Resolved</p>
+          <p className="mt-1 text-2xl font-semibold text-[#0FB200]">{stats.resolved}</p>
         </div>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm font-medium text-red-700">Overdue</p>
-          <p className="mt-1 text-2xl font-semibold text-red-800">{stats.overdue}</p>
+        <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+          <p className="text-sm font-medium text-[#FF4242]">Overdue</p>
+          <p className="mt-1 text-2xl font-semibold text-[#FF4242]">{stats.overdue}</p>
         </div>
       </div>
 
-      <div className="mb-6 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-center">
+      <div className="mb-6 flex flex-col gap-3 rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)] sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search my complaints..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-[#081636] shadow-[inset_0_4px_6px_-1px_rgba(1,8,184,0.25)] placeholder:text-[#081636] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
           />
           <svg
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#081636]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -230,7 +230,7 @@ export default function QAExecutiveComplaintsPage({
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] shadow-[inset_0_4px_6px_-1px_rgba(1,8,184,0.25)] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
         >
           <option value="all">All Status</option>
           <option value="open">Open</option>
@@ -250,25 +250,25 @@ export default function QAExecutiveComplaintsPage({
           <p className="text-sm text-red-800">{error}</p>
         </div>
       ) : filteredComplaints.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white py-12 text-center">
-          <p className="text-gray-500">No complaints assigned to you match your filters.</p>
+        <div className="rounded-lg bg-[#FFFFFF] py-12 text-center shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+          <p className="text-[#081636]">No complaints assigned to you match your filters.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-hidden rounded-lg bg-[#FFFFFF] shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Complaint
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Deadline
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Actions
                   </th>
                 </tr>
@@ -278,11 +278,11 @@ export default function QAExecutiveComplaintsPage({
                   <tr key={c.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                        <p className="text-sm font-medium text-[#081636] truncate max-w-xs">
                           {c.title}
                         </p>
                         {c.description && (
-                          <p className="text-sm text-gray-500 truncate max-w-xs">
+                          <p className="text-sm text-[#081636] truncate max-w-xs">
                             {c.description}
                           </p>
                         )}
@@ -297,11 +297,11 @@ export default function QAExecutiveComplaintsPage({
                         {c.status}
                       </span>
                       {c.submitted_for_verification_at && (
-                        <span className="ml-1 text-xs text-teal-600">Sent for verification</span>
+                        <span className="ml-1 text-xs text-[#0108B8]">Sent for verification</span>
                       )}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      <span className={isOverdue(c) ? 'text-red-600 font-medium' : 'text-gray-500'}>
+                      <span className={isOverdue(c) ? 'text-red-600 font-medium' : 'text-[#081636]'}>
                         {formatDate(c.deadline ?? null)}
                       </span>
                       {isOverdue(c) && (
@@ -311,7 +311,7 @@ export default function QAExecutiveComplaintsPage({
                     <td className="whitespace-nowrap px-6 py-4 text-right">
                       <button
                         onClick={() => setSelectedComplaint(c)}
-                        className="text-sm font-medium text-teal-600 hover:text-teal-700"
+                        className="text-sm font-medium text-[#0108B8] hover:text-[#0108B8]/90"
                       >
                         Details & actions
                       </button>
@@ -329,12 +329,12 @@ export default function QAExecutiveComplaintsPage({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
             <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-              <h2 className="text-lg font-semibold text-gray-900 truncate pr-4">
+              <h2 className="text-lg font-semibold text-[#081636] truncate pr-4">
                 {selectedComplaint.title}
               </h2>
               <button
                 onClick={() => setSelectedComplaint(null)}
-                className="flex-shrink-0 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                className="flex-shrink-0 rounded-lg p-1 text-[#081636] hover:bg-gray-100 hover:text-[#081636]"
               >
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -344,27 +344,27 @@ export default function QAExecutiveComplaintsPage({
             <div className="space-y-6 p-6">
               {selectedComplaint.description && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700">Description</h3>
-                  <p className="mt-1 text-sm text-gray-600">{selectedComplaint.description}</p>
+                  <h3 className="text-sm font-medium text-[#081636]">Description</h3>
+                  <p className="mt-1 text-sm text-[#081636]">{selectedComplaint.description}</p>
                 </div>
               )}
               <div className="flex flex-wrap gap-4 text-sm">
                 <span>
-                  <strong className="text-gray-700">Status:</strong>{' '}
+                  <strong className="text-[#081636]">Status:</strong>{' '}
                   <span className={getStatusColor(selectedComplaint.status)}>
                     {selectedComplaint.status}
                   </span>
                 </span>
                 <span>
-                  <strong className="text-gray-700">Priority:</strong>{' '}
+                  <strong className="text-[#081636]">Priority:</strong>{' '}
                   {selectedComplaint.priority ?? '—'}
                 </span>
                 <span>
-                  <strong className="text-gray-700">Created:</strong>{' '}
+                  <strong className="text-[#081636]">Created:</strong>{' '}
                   {formatDate(selectedComplaint.created_at)}
                 </span>
                 {selectedComplaint.submitted_for_verification_at && (
-                  <span className="text-teal-600">
+                  <span className="text-[#0108B8]">
                     Sent for verification {formatDate(selectedComplaint.submitted_for_verification_at)}
                   </span>
                 )}
@@ -372,7 +372,7 @@ export default function QAExecutiveComplaintsPage({
 
               {/* Deadline */}
               <div>
-                <h3 className="mb-2 text-sm font-medium text-gray-700">Deadline</h3>
+                <h3 className="mb-2 text-sm font-medium text-[#081636]">Deadline</h3>
                 <div className="flex gap-2">
                   <input
                     type="datetime-local"
@@ -380,7 +380,7 @@ export default function QAExecutiveComplaintsPage({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, deadline: e.target.value }))
                     }
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
                   />
                   <button
                     onClick={handleSaveDeadline}
@@ -394,13 +394,13 @@ export default function QAExecutiveComplaintsPage({
 
               {/* Attach documents (CAPA / SLA URLs) */}
               <div>
-                <h3 className="mb-2 text-sm font-medium text-gray-700">Attach documents</h3>
-                <p className="mb-2 text-xs text-gray-500">
+                <h3 className="mb-2 text-sm font-medium text-[#081636]">Attach documents</h3>
+                <p className="mb-2 text-xs text-[#081636]">
                   Add links to CAPA and SLA documents (e.g. from your storage or shared drive).
                 </p>
                 <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600">CAPA document URL</label>
+                    <label className="block text-xs font-medium text-[#081636]">CAPA document URL</label>
                     <input
                       type="url"
                       value={formData.capa_document_url}
@@ -408,11 +408,11 @@ export default function QAExecutiveComplaintsPage({
                         setFormData((prev) => ({ ...prev, capa_document_url: e.target.value }))
                       }
                       placeholder="https://..."
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600">SLA document URL</label>
+                    <label className="block text-xs font-medium text-[#081636]">SLA document URL</label>
                     <input
                       type="url"
                       value={formData.sla_document_url}
@@ -420,7 +420,7 @@ export default function QAExecutiveComplaintsPage({
                         setFormData((prev) => ({ ...prev, sla_document_url: e.target.value }))
                       }
                       placeholder="https://..."
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
                     />
                   </div>
                   <button

@@ -97,10 +97,10 @@ export default function ViewUsersModal({
               placeholder="Search users..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-[#081636] placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
             <svg
-              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#081636]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -120,9 +120,10 @@ export default function ViewUsersModal({
                 onClick={() => setFilterStatus(status)}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                   filterStatus === status
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'text-white'
+                    : 'bg-gray-100 text-[#081636] hover:bg-gray-200'
                 }`}
+                style={filterStatus === status ? { backgroundColor: '#2563EB' } : undefined}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </button>
@@ -142,7 +143,7 @@ export default function ViewUsersModal({
         ) : filteredUsers.length === 0 ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-[#081636]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -154,7 +155,7 @@ export default function ViewUsersModal({
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-[#081636]">
               {searchQuery || filterStatus !== 'all'
                 ? 'No users match your filters'
                 : 'No users found for this company'}
@@ -165,16 +166,16 @@ export default function ViewUsersModal({
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     User
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Roles
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Actions
                   </th>
                 </tr>
@@ -188,10 +189,10 @@ export default function ViewUsersModal({
                           {(user.full_name || user.email || 'U').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-[#081636]">
                             {user.full_name || 'No name'}
                           </p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
+                          <p className="text-xs text-[#081636]">{user.email}</p>
                         </div>
                       </div>
                     </td>
@@ -207,7 +208,7 @@ export default function ViewUsersModal({
                             </span>
                           ))
                         ) : (
-                          <span className="text-xs text-gray-400 italic">
+                          <span className="text-xs text-[#081636] italic">
                             No roles
                           </span>
                         )}
@@ -245,7 +246,7 @@ export default function ViewUsersModal({
 
         {/* Summary */}
         <div className="border-t border-gray-200 pt-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[#081636]">
             Showing {filteredUsers.length} of {users.length} users
             {filterStatus !== 'all' && ` (${filterStatus})`}
           </p>

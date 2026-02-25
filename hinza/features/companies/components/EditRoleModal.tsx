@@ -135,23 +135,23 @@ export default function EditRoleModal({
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-[#081636]">
             Role Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={roleName}
             onChange={(e) => setRoleName(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             placeholder="e.g., QA Manager, Company Admin"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[#081636] mb-2">
             Permissions
-            <span className="ml-2 text-xs font-normal text-gray-500">
+            <span className="ml-2 text-xs font-normal text-[#081636]">
               ({selectedPermissionIds.length} selected)
             </span>
           </label>
@@ -161,14 +161,14 @@ export default function EditRoleModal({
             <button
               type="button"
               onClick={() => setSelectedPermissionIds(permissions.map((p) => p.id))}
-              className="rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-[#081636] hover:bg-gray-50"
             >
               Select All
             </button>
             <button
               type="button"
               onClick={() => setSelectedPermissionIds([])}
-              className="rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-[#081636] hover:bg-gray-50"
             >
               Clear All
             </button>
@@ -176,11 +176,11 @@ export default function EditRoleModal({
 
           <div className="max-h-96 space-y-4 overflow-y-auto rounded-md border border-gray-200 p-4">
             {permissions.length === 0 ? (
-              <p className="text-sm text-gray-500">Loading permissions...</p>
+              <p className="text-sm text-[#081636]">Loading permissions...</p>
             ) : (
               permissionCategories.map((category) => (
                 <div key={category} className="space-y-2">
-                  <h4 className="text-sm font-semibold text-gray-800 capitalize">
+                  <h4 className="text-sm font-semibold text-[#081636] capitalize">
                     {category}
                   </h4>
                   <div className="ml-4 space-y-2">
@@ -196,11 +196,11 @@ export default function EditRoleModal({
                           className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                         <div className="flex-1">
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-[#081636]">
                             {permission.name}
                           </span>
                           {permission.description && (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-[#081636]">
                               {permission.description}
                             </p>
                           )}
@@ -218,7 +218,7 @@ export default function EditRoleModal({
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-[#081636] hover:bg-gray-50"
             disabled={loading}
           >
             Cancel

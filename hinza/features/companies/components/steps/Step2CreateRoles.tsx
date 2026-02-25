@@ -62,7 +62,7 @@ export default function Step2CreateRoles({
 
   return (
     <div>
-      <h2 className="mb-4 text-xl font-semibold text-gray-900">
+      <h2 className="mb-4 text-xl font-semibold text-[#081636]">
         Step 2: Create Roles (Optional)
       </h2>
       <p className="mb-6 text-sm text-gray-600">
@@ -72,11 +72,12 @@ export default function Step2CreateRoles({
 
       {roles.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center">
-          <p className="text-sm text-gray-500">No roles added yet.</p>
+          <p className="text-sm text-[#081636]">No roles added yet.</p>
           <button
             type="button"
             onClick={addRole}
-            className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+            className="mt-4 rounded-md px-4 py-2 text-sm text-white hover:opacity-90"
+            style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
           >
             Add First Role
           </button>
@@ -89,7 +90,7 @@ export default function Step2CreateRoles({
               className="rounded-lg border border-gray-200 p-6"
             >
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-[#081636]">
                   Role {roleIndex + 1}
                 </h3>
                 <button
@@ -111,9 +112,10 @@ export default function Step2CreateRoles({
                   onChange={(e) =>
                     updateRole(roleIndex, 'name', e.target.value)
                   }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                   placeholder="e.g., QA Manager, Company Admin"
                   required
+                  style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
                 />
               </div>
 
@@ -123,7 +125,7 @@ export default function Step2CreateRoles({
                 </label>
                 <div className="max-h-60 space-y-2 overflow-y-auto rounded-md border border-gray-200 p-4">
                   {permissions.length === 0 ? (
-                    <p className="text-sm text-gray-500">Loading permissions...</p>
+                    <p className="text-sm text-[#081636]">Loading permissions...</p>
                   ) : (
                     permissions.map((permission) => (
                       <label
@@ -142,7 +144,7 @@ export default function Step2CreateRoles({
                           {permission.name}
                         </span>
                         {permission.description && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-[#081636]">
                             - {permission.description}
                           </span>
                         )}

@@ -17,8 +17,8 @@ export default async function NewUserPage() {
 
   return (
     <DashboardLayout permissions={user.permissions}>
-      <div className="p-6">
-        <h1 className="mb-6 text-2xl font-semibold">Create Superadmin User</h1>
+      <div className="min-h-full p-6" style={{ backgroundColor: '#EFF4FF' }}>
+        <h1 className="mb-[40px] text-2xl font-semibold text-[#081636]">Create Superadmin User</h1>
         <CreateUserForm />
       </div>
     </DashboardLayout>

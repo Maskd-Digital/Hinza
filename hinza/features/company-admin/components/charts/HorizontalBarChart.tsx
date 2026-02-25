@@ -45,7 +45,7 @@ export default function HorizontalBarChart({
                   {item.label}
                 </span>
                 {showValues && (
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-[#081636]">
                     {item.value}
                   </span>
                 )}

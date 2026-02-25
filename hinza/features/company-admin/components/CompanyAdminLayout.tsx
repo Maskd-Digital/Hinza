@@ -17,13 +17,13 @@ export default function CompanyAdminLayout({
   companyName,
 }: CompanyAdminLayoutProps) {
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen" style={{ backgroundColor: '#EFF4FF' }}>
       <CompanyAdminSidebar
         permissions={permissions}
         companyId={companyId}
         companyName={companyName}
       />
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="flex-1 overflow-auto px-[20px] pt-[20px]">{children}</main>
     </div>
   )
 }

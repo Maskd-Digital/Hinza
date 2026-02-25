@@ -72,17 +72,17 @@ export default function QAManagerDashboard({
       case 'resolved':
         return 'bg-green-100 text-green-700'
       case 'closed':
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-gray-100 text-[#081636]'
       default:
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-gray-100 text-[#081636]'
     }
   }
 
   return (
-    <div className="p-6">
+    <div className="min-h-full bg-[#EFF4FF] p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">QA Manager Dashboard</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-[#081636]">QA Manager Dashboard</h1>
+        <p className="text-sm text-[#081636]">
           Complaints overview for {companyName}
         </p>
       </div>
@@ -94,40 +94,40 @@ export default function QAManagerDashboard({
       ) : (
         <>
           <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
-            <div className="rounded-lg border border-gray-200 bg-white p-4">
-              <p className="text-sm font-medium text-gray-500">Total</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">{stats.total}</p>
+            <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+              <p className="text-sm font-medium text-[#081636]">Total</p>
+              <p className="mt-1 text-2xl font-semibold text-[#081636]">{stats.total}</p>
             </div>
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-              <p className="text-sm font-medium text-yellow-700">Pending</p>
-              <p className="mt-1 text-2xl font-semibold text-yellow-800">{stats.pending}</p>
+            <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+              <p className="text-sm font-medium text-[#FF4242]">Pending</p>
+              <p className="mt-1 text-2xl font-semibold text-[#FF4242]">{stats.pending}</p>
             </div>
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-              <p className="text-sm font-medium text-blue-700">In Progress</p>
-              <p className="mt-1 text-2xl font-semibold text-blue-800">{stats.in_progress}</p>
+            <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+              <p className="text-sm font-medium text-[#FF9742]">In Progress</p>
+              <p className="mt-1 text-2xl font-semibold text-[#FF9742]">{stats.in_progress}</p>
             </div>
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-              <p className="text-sm font-medium text-green-700">Resolved</p>
-              <p className="mt-1 text-2xl font-semibold text-green-800">{stats.resolved}</p>
+            <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+              <p className="text-sm font-medium text-[#0FB200]">Resolved</p>
+              <p className="mt-1 text-2xl font-semibold text-[#0FB200]">{stats.resolved}</p>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-              <p className="text-sm font-medium text-gray-700">Closed</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-800">{stats.closed}</p>
+            <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+              <p className="text-sm font-medium text-[#081636]">Closed</p>
+              <p className="mt-1 text-2xl font-semibold text-[#081636]">{stats.closed}</p>
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
+          <div className="rounded-lg bg-[#FFFFFF] p-6 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Complaints</h2>
+              <h2 className="text-lg font-semibold text-[#081636]">Recent Complaints</h2>
               <Link
                 href={`/qa-manager/${companyId}/complaints`}
-                className="text-sm font-medium text-amber-600 hover:text-amber-700"
+                className="text-sm font-medium text-[#0108B8] hover:text-[#0108B8]/90"
               >
                 View all →
               </Link>
             </div>
             {recent.length === 0 ? (
-              <p className="py-8 text-center text-sm text-gray-500">
+              <p className="py-8 text-center text-sm text-[#081636]">
                 No complaints yet.
               </p>
             ) : (
@@ -135,8 +135,8 @@ export default function QAManagerDashboard({
                 {recent.map((c) => (
                   <li key={c.id} className="flex items-center justify-between py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-gray-900">{c.title}</p>
-                      <p className="text-xs text-gray-500">{formatDate(c.created_at)}</p>
+                      <p className="truncate text-sm font-medium text-[#081636]">{c.title}</p>
+                      <p className="text-xs text-[#081636]">{formatDate(c.created_at)}</p>
                     </div>
                     <span
                       className={`ml-4 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
@@ -147,7 +147,7 @@ export default function QAManagerDashboard({
                     </span>
                     <Link
                       href={`/qa-manager/${companyId}/complaints?highlight=${c.id}`}
-                      className="ml-4 text-sm font-medium text-amber-600 hover:text-amber-700"
+                      className="ml-4 text-sm font-medium text-[#0108B8] hover:text-[#0108B8]/90"
                     >
                       Open
                     </Link>

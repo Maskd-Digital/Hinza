@@ -96,10 +96,10 @@ export default function Step5CreateFacilities({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-[#081636]">
           Create Facilities
         </h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-[#081636]">
           Add facilities, locations, or branches for this company. You can skip
           this step and add facilities later.
         </p>
@@ -118,9 +118,9 @@ export default function Step5CreateFacilities({
                 className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3"
               >
                 <div>
-                  <p className="font-medium text-gray-900">{facility.name}</p>
+                  <p className="font-medium text-[#081636]">{facility.name}</p>
                   {(facility.city || facility.state || facility.country) && (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-[#081636]">
                       {[facility.city, facility.state, facility.country]
                         .filter(Boolean)
                         .join(', ')}
@@ -136,7 +136,8 @@ export default function Step5CreateFacilities({
                   <button
                     type="button"
                     onClick={() => handleEdit(index)}
-                    className="rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50"
+                    className="rounded-md px-2 py-1 text-sm hover:opacity-80"
+                    style={{ color: '#2563EB' }}
                   >
                     Edit
                   </button>
@@ -157,7 +158,7 @@ export default function Step5CreateFacilities({
       {/* Add/Edit Facility Form */}
       {showAddForm ? (
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h3 className="mb-4 text-lg font-medium text-gray-900">
+          <h3 className="mb-4 text-lg font-medium text-[#081636]">
             {editingIndex !== null ? 'Edit Facility' : 'Add New Facility'}
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -172,8 +173,9 @@ export default function Step5CreateFacilities({
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="e.g., Headquarters, Branch Office, Warehouse"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
               />
             </div>
 
@@ -188,8 +190,9 @@ export default function Step5CreateFacilities({
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={2}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="Brief description of the facility"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
               />
             </div>
 
@@ -204,8 +207,9 @@ export default function Step5CreateFacilities({
                 onChange={(e) =>
                   setFormData({ ...formData, address: e.target.value })
                 }
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="Street address"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
               />
             </div>
 
@@ -220,8 +224,9 @@ export default function Step5CreateFacilities({
                 onChange={(e) =>
                   setFormData({ ...formData, city: e.target.value })
                 }
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="City"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
               />
             </div>
 
@@ -236,8 +241,9 @@ export default function Step5CreateFacilities({
                 onChange={(e) =>
                   setFormData({ ...formData, state: e.target.value })
                 }
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="State or Province"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
               />
             </div>
 
@@ -252,8 +258,9 @@ export default function Step5CreateFacilities({
                 onChange={(e) =>
                   setFormData({ ...formData, country: e.target.value })
                 }
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="Country"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
               />
             </div>
 
@@ -268,8 +275,9 @@ export default function Step5CreateFacilities({
                 onChange={(e) =>
                   setFormData({ ...formData, postal_code: e.target.value })
                 }
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="Postal/ZIP code"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
               />
             </div>
 
@@ -284,8 +292,9 @@ export default function Step5CreateFacilities({
                 onChange={(e) =>
                   setFormData({ ...formData, phone: e.target.value })
                 }
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="Phone number"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
               />
             </div>
 
@@ -300,8 +309,9 @@ export default function Step5CreateFacilities({
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-[#081636] shadow-sm placeholder:text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="Facility email"
+                style={{ backgroundColor: '#FFFFFF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.35)' }}
               />
             </div>
           </div>
@@ -320,7 +330,8 @@ export default function Step5CreateFacilities({
                 editingIndex !== null ? handleUpdateFacility : handleAddFacility
               }
               disabled={!formData.name.trim()}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
             >
               {editingIndex !== null ? 'Update Facility' : 'Add Facility'}
             </button>
@@ -330,7 +341,7 @@ export default function Step5CreateFacilities({
         <button
           type="button"
           onClick={() => setShowAddForm(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 p-6 text-gray-500 hover:border-blue-500 hover:text-blue-500"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 p-6 text-[#081636] hover:border-blue-500 hover:text-blue-500"
         >
           <svg
             className="h-5 w-5"
@@ -360,12 +371,13 @@ export default function Step5CreateFacilities({
           >
             {facilities.length > 0 ? 'Skip & Finish' : 'Skip'}
           </button>
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={loading}
-            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+            <button
+              type="button"
+              onClick={onSubmit}
+              disabled={loading}
+              className="rounded-md px-4 py-2 text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
+            >
             {loading ? 'Saving...' : 'Finish Setup'}
           </button>
         </div>
