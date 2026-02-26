@@ -11,6 +11,9 @@ interface Product {
   company_id: string
 }
 
+/** Tree node: product with recursive children (same shape as node). */
+type ProductTreeNode = Product & { children: ProductTreeNode[] }
+
 interface ProductsListPageProps {
   companyId: string
   canCreateProducts: boolean
@@ -54,9 +57,9 @@ export default function ProductsListPage({
   }
 
   // Build tree structure
-  const productTree = useMemo(() => {
-    const productMap = new Map<string, Product & { children: Product[] }>()
-    const roots: (Product & { children: Product[] })[] = []
+  const productTree = useMemo((): ProductTreeNode[] => {
+    const productMap = new Map<string, ProductTreeNode>()
+    const roots: ProductTreeNode[] = []
 
     // Initialize all products with empty children
     products.forEach((product) => {
@@ -104,7 +107,7 @@ export default function ProductsListPage({
   }
 
   const renderTreeNode = (
-    node: Product & { children: Product[] },
+    node: ProductTreeNode,
     depth: number = 0
   ): React.ReactNode => {
     const hasChildren = node.children.length > 0

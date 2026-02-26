@@ -24,7 +24,7 @@ interface CompanyFormData {
     description?: string
     fields?: Array<{
       field_name: string
-      field_type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'boolean'
+      field_type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'boolean' | 'file'
       is_required: boolean
       field_order: number
       options?: string[]
