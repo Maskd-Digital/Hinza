@@ -1,18 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { SYSTEM_ADMIN_COMPANY_ID } from '@/lib/auth/permissions'
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
-
   const searchParams = useSearchParams()
 
   // Check for error query parameter
@@ -163,5 +162,31 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+function LoginFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#EFF4FF' }}>
+      <div className="w-full max-w-md space-y-8 rounded-lg p-8" style={{ backgroundColor: '#FFFFFF', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.35)' }}>
+        <div>
+          <h2 className="text-center text-3xl font-bold text-[#081636]">Sign in to your account</h2>
+        </div>
+        <div className="mt-8 h-10 w-full animate-pulse rounded-md bg-gray-200" />
+        <div className="space-y-4">
+          <div className="h-12 animate-pulse rounded-md bg-gray-100" />
+          <div className="h-12 animate-pulse rounded-md bg-gray-100" />
+        </div>
+        <div className="h-10 w-full animate-pulse rounded-md bg-blue-100" />
+      </div>
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginForm />
+    </Suspense>
   )
 }
