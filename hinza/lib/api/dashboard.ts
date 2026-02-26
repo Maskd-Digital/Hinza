@@ -59,22 +59,24 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     complaintsByStatus[status] = (complaintsByStatus[status] || 0) + 1
   })
 
-  // Generate timeline data (last 30 days)
-  const timeline: Record<string, number> = {}
+  // Build full 30-day timeline (every day from 30 days ago to today) with complaint counts
   const today = new Date()
-  const thirtyDaysAgo = new Date(today)
-  thirtyDaysAgo.setDate(today.getDate() - 30)
-
+  today.setHours(0, 0, 0, 0)
+  const timelineMap = new Map<string, number>()
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const dateStr = d.toISOString().split('T')[0]
+    timelineMap.set(dateStr, 0)
+  }
   complaints?.forEach((complaint) => {
     const complaintDate = new Date(complaint.created_at)
-    if (complaintDate >= thirtyDaysAgo) {
-      const dateKey = complaintDate.toISOString().split('T')[0] // YYYY-MM-DD
-      timeline[dateKey] = (timeline[dateKey] || 0) + 1
+    const dateStr = complaintDate.toISOString().split('T')[0]
+    if (timelineMap.has(dateStr)) {
+      timelineMap.set(dateStr, (timelineMap.get(dateStr) ?? 0) + 1)
     }
   })
-
-  // Convert timeline to array and sort by date
-  const complaintsTimeline = Object.entries(timeline)
+  const complaintsTimeline = Array.from(timelineMap.entries())
     .map(([date, count]) => ({ date, count }))
     .sort((a, b) => a.date.localeCompare(b.date))
 

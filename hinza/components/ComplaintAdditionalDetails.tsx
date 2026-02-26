@@ -28,11 +28,15 @@ function parsePhotoPaths(value: string): string[] {
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '') ?? ''
 const STORAGE_BUCKET = process.env.NEXT_PUBLIC_SUPABASE_COMPLAINTS_BUCKET ?? 'complaints'
 
-/** Build URL for photo: external URLs as-is; otherwise Supabase public URL (same format as direct link). */
+/** True if the value is already a full URL (e.g. stored public URL from DB). Use directly as img src. */
+function isPublicUrl(pathOrUrl: string): boolean {
+  const p = pathOrUrl.trim()
+  return p.startsWith('http://') || p.startsWith('https://')
+}
+
+/** Build URL for photo: use stored public URL as-is; otherwise build Supabase public URL or proxy. */
 function getPhotoUrl(pathOrUrl: string): string {
-  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
-    return pathOrUrl
-  }
+  if (isPublicUrl(pathOrUrl)) return pathOrUrl.trim()
   const path = pathOrUrl.trim().replace(/^\/+/, '')
   if (SUPABASE_URL) {
     const encodedPath = path.split('/').map(encodeURIComponent).join('/')
@@ -96,9 +100,11 @@ export default function ComplaintAdditionalDetails({
                 {isPhoto ? (
                   <div className="mt-2 space-y-3">
                     {parsePhotoPaths(value).map((path, pathIndex) => {
+                      // Photo is stored as public URL in DB — use directly as img src when possible
                       const storageKey = getStorageKeyForDisplay(path)
-                      const photoUrl = getPhotoUrl(storageKey)
-                      const isLocal = isLocalDevicePath(path)
+                      const photoUrl = isPublicUrl(path)
+                        ? path.trim()
+                        : getPhotoUrl(storageKey)
                       return (
                         <div key={pathIndex} className="relative">
                           <img

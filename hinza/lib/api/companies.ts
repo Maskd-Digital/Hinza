@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Company, CreateCompanyInput, UpdateCompanyInput } from '@/types/company'
 
 export async function getCompanies(): Promise<Company[]> {
@@ -115,16 +116,19 @@ export async function getCompanyStats(
     .select('*', { count: 'exact', head: true })
     .eq('company_id', companyId)
 
+  // Use admin client for complaints (and timeline) so superadmin sees accurate
+  // counts for any company; RLS would otherwise restrict by user context.
+  const adminClient = createAdminClient()
+
   // Get complaints count (assuming complaints table exists)
   let complaintsCount = 0
   try {
-    const { count } = await supabase
+    const { count } = await adminClient
       .from('complaints')
       .select('*', { count: 'exact', head: true })
       .eq('company_id', companyId)
-    complaintsCount = count || 0
+    complaintsCount = count ?? 0
   } catch {
-    // Table might not exist yet
     complaintsCount = 0
   }
 
@@ -143,24 +147,22 @@ export async function getCompanyStats(
       .eq('company_id', companyId)
     facilitiesCount = count || 0
   } catch {
-    // Table might not exist yet
     facilitiesCount = 0
   }
 
-  // Get complaints timeline (last 30 days)
+  // Get complaints timeline (last 30 days) — admin client for accurate data
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
   let complaints: Array<{ created_at: string }> = []
   try {
-    const { data } = await supabase
+    const { data } = await adminClient
       .from('complaints')
       .select('created_at')
       .eq('company_id', companyId)
       .gte('created_at', thirtyDaysAgo.toISOString())
     complaints = data || []
   } catch {
-    // Table might not exist yet
     complaints = []
   }
 

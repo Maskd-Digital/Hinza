@@ -81,8 +81,8 @@ export default function CompanyAdminDashboard({
         </div>
       </div>
 
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      {/* Quick Stats Grid — 2 rows × 3 columns */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8">
         <MiniStatCard
           title="Total Users"
           value={stats.usersCount}

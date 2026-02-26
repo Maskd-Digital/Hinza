@@ -58,15 +58,15 @@ export default function MiniStatCard({
   const colors = colorClasses[color]
   
   const content = (
-    <div className={`h-full min-h-[100px] rounded-xl p-4 ${colors.bg} ${onClick ? 'cursor-pointer transition-shadow hover:opacity-95' : ''}`} style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
-      <div className="flex h-full items-start justify-between">
-        <div className="flex-1 min-w-0">
+    <div className={`h-full min-h-[120px] rounded-xl p-6 ${colors.bg} ${onClick ? 'cursor-pointer transition-shadow hover:opacity-95' : ''}`} style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+      <div className="flex h-full items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-medium text-[#081636] uppercase tracking-wide">
             {title}
           </p>
-          <p className={`mt-1 text-2xl font-bold ${colors.value}`}>{value}</p>
+          <p className={`mt-2 text-2xl font-bold ${colors.value}`}>{value}</p>
           {subtitle && (
-            <p className="mt-0.5 text-xs text-[#081636]">{subtitle}</p>
+            <p className="mt-1 text-xs text-[#081636]">{subtitle}</p>
           )}
           {trend && (
             <p
@@ -80,7 +80,7 @@ export default function MiniStatCard({
           )}
         </div>
         {icon && (
-          <div className={`ml-3 flex-shrink-0 rounded-lg p-2 ${colors.icon}`}>
+          <div className={`flex-shrink-0 rounded-lg p-3 ${colors.icon}`}>
             {icon}
           </div>
         )}

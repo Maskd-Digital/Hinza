@@ -7,6 +7,7 @@ import Link from 'next/link'
 function initWebGL(canvas: HTMLCanvasElement) {
   const gl = canvas.getContext('webgl')
   if (!gl) return
+  const ctx: WebGLRenderingContext = gl
 
   const vertexSrc = `
     attribute vec2 a_position;
@@ -36,46 +37,50 @@ function initWebGL(canvas: HTMLCanvasElement) {
     }
   `
 
-  function compileShader(type: number, source: string) {
-    const shader = gl.createShader(type)
+  function compileShader(
+    context: WebGLRenderingContext,
+    type: number,
+    source: string
+  ): WebGLShader | null {
+    const shader = context.createShader(type)
     if (!shader) return null
-    gl.shaderSource(shader, source)
-    gl.compileShader(shader)
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.warn('WebGL shader error', gl.getShaderInfoLog(shader) ?? '')
-      gl.deleteShader(shader)
+    context.shaderSource(shader, source)
+    context.compileShader(shader)
+    if (!context.getShaderParameter(shader, context.COMPILE_STATUS)) {
+      console.warn('WebGL shader error', context.getShaderInfoLog(shader) ?? '')
+      context.deleteShader(shader)
       return null
     }
     return shader
   }
 
-  const vs = compileShader(gl.VERTEX_SHADER, vertexSrc)
-  const fs = compileShader(gl.FRAGMENT_SHADER, fragmentSrc)
+  const vs = compileShader(ctx, ctx.VERTEX_SHADER, vertexSrc)
+  const fs = compileShader(ctx, ctx.FRAGMENT_SHADER, fragmentSrc)
   if (!vs || !fs) return
 
-  const program = gl.createProgram()
+  const program = ctx.createProgram()
   if (!program) return
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.warn('WebGL program error', gl.getProgramInfoLog(program) ?? '')
-    gl.deleteProgram(program)
+  ctx.attachShader(program, vs)
+  ctx.attachShader(program, fs)
+  ctx.linkProgram(program)
+  if (!ctx.getProgramParameter(program, ctx.LINK_STATUS)) {
+    console.warn('WebGL program error', ctx.getProgramInfoLog(program) ?? '')
+    ctx.deleteProgram(program)
     return
   }
 
-  gl.useProgram(program)
+  ctx.useProgram(program)
 
-  const positionLoc = gl.getAttribLocation(program, 'a_position')
-  const timeLoc = gl.getUniformLocation(program, 'u_time')
-  const resLoc = gl.getUniformLocation(program, 'u_resolution')
-  const pointerLoc = gl.getUniformLocation(program, 'u_pointer')
+  const positionLoc = ctx.getAttribLocation(program, 'a_position')
+  const timeLoc = ctx.getUniformLocation(program, 'u_time')
+  const resLoc = ctx.getUniformLocation(program, 'u_resolution')
+  const pointerLoc = ctx.getUniformLocation(program, 'u_pointer')
 
-  const buffer = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW)
-  gl.enableVertexAttribArray(positionLoc)
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
+  const buffer = ctx.createBuffer()
+  ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer)
+  ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), ctx.STATIC_DRAW)
+  ctx.enableVertexAttribArray(positionLoc)
+  ctx.vertexAttribPointer(positionLoc, 2, ctx.FLOAT, false, 0, 0)
 
   let start = performance.now()
   let pointer = { x: 0.5, y: 0.5 }
@@ -98,8 +103,8 @@ function initWebGL(canvas: HTMLCanvasElement) {
       canvas.width = w
       canvas.height = h
     }
-    gl.viewport(0, 0, canvas.width, canvas.height)
-    if (resLoc) gl.uniform2f(resLoc, canvas.width, canvas.height)
+    ctx.viewport(0, 0, canvas.width, canvas.height)
+    if (resLoc) ctx.uniform2f(resLoc, canvas.width, canvas.height)
   }
 
   resize()
@@ -107,9 +112,9 @@ function initWebGL(canvas: HTMLCanvasElement) {
 
   function render() {
     const t = (performance.now() - start) / 1000
-    if (timeLoc) gl.uniform1f(timeLoc, t)
-    if (pointerLoc) gl.uniform2f(pointerLoc, pointer.x, pointer.y)
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
+    if (timeLoc) ctx.uniform1f(timeLoc, t)
+    if (pointerLoc) ctx.uniform2f(pointerLoc, pointer.x, pointer.y)
+    ctx.drawArrays(ctx.TRIANGLES, 0, 6)
     requestAnimationFrame(render)
   }
   requestAnimationFrame(render)
@@ -125,6 +130,7 @@ function initWebGL(canvas: HTMLCanvasElement) {
 function initOrbsWebGL(canvas: HTMLCanvasElement) {
   const gl = canvas.getContext('webgl')
   if (!gl) return
+  const ctx: WebGLRenderingContext = gl
 
   const vertexSrc = `
     attribute vec2 a_position;
@@ -178,45 +184,49 @@ function initOrbsWebGL(canvas: HTMLCanvasElement) {
     }
   `
 
-  function compileShader(type: number, source: string) {
-    const shader = gl.createShader(type)
+  function compileShader(
+    context: WebGLRenderingContext,
+    type: number,
+    source: string
+  ): WebGLShader | null {
+    const shader = context.createShader(type)
     if (!shader) return null
-    gl.shaderSource(shader, source)
-    gl.compileShader(shader)
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.warn('WebGL orbs shader error', gl.getShaderInfoLog(shader) ?? '')
-      gl.deleteShader(shader)
+    context.shaderSource(shader, source)
+    context.compileShader(shader)
+    if (!context.getShaderParameter(shader, context.COMPILE_STATUS)) {
+      console.warn('WebGL orbs shader error', context.getShaderInfoLog(shader) ?? '')
+      context.deleteShader(shader)
       return null
     }
     return shader
   }
 
-  const vs = compileShader(gl.VERTEX_SHADER, vertexSrc)
-  const fs = compileShader(gl.FRAGMENT_SHADER, fragmentSrc)
+  const vs = compileShader(ctx, ctx.VERTEX_SHADER, vertexSrc)
+  const fs = compileShader(ctx, ctx.FRAGMENT_SHADER, fragmentSrc)
   if (!vs || !fs) return
 
-  const program = gl.createProgram()
+  const program = ctx.createProgram()
   if (!program) return
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.warn('WebGL orbs program error', gl.getProgramInfoLog(program) ?? '')
-    gl.deleteProgram(program)
+  ctx.attachShader(program, vs)
+  ctx.attachShader(program, fs)
+  ctx.linkProgram(program)
+  if (!ctx.getProgramParameter(program, ctx.LINK_STATUS)) {
+    console.warn('WebGL orbs program error', ctx.getProgramInfoLog(program) ?? '')
+    ctx.deleteProgram(program)
     return
   }
 
-  gl.useProgram(program)
+  ctx.useProgram(program)
 
-  const positionLoc = gl.getAttribLocation(program, 'a_position')
-  const timeLoc = gl.getUniformLocation(program, 'u_time')
-  const resLoc = gl.getUniformLocation(program, 'u_resolution')
+  const positionLoc = ctx.getAttribLocation(program, 'a_position')
+  const timeLoc = ctx.getUniformLocation(program, 'u_time')
+  const resLoc = ctx.getUniformLocation(program, 'u_resolution')
 
-  const buffer = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW)
-  gl.enableVertexAttribArray(positionLoc)
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
+  const buffer = ctx.createBuffer()
+  ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer)
+  ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), ctx.STATIC_DRAW)
+  ctx.enableVertexAttribArray(positionLoc)
+  ctx.vertexAttribPointer(positionLoc, 2, ctx.FLOAT, false, 0, 0)
 
   let start = performance.now()
 
@@ -228,8 +238,8 @@ function initOrbsWebGL(canvas: HTMLCanvasElement) {
       canvas.width = w
       canvas.height = h
     }
-    gl.viewport(0, 0, canvas.width, canvas.height)
-    if (resLoc) gl.uniform2f(resLoc, canvas.width, canvas.height)
+    ctx.viewport(0, 0, canvas.width, canvas.height)
+    if (resLoc) ctx.uniform2f(resLoc, canvas.width, canvas.height)
   }
 
   resize()
@@ -237,8 +247,8 @@ function initOrbsWebGL(canvas: HTMLCanvasElement) {
 
   function render() {
     const t = (performance.now() - start) / 1000
-    if (timeLoc) gl.uniform1f(timeLoc, t)
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
+    if (timeLoc) ctx.uniform1f(timeLoc, t)
+    ctx.drawArrays(ctx.TRIANGLES, 0, 6)
     requestAnimationFrame(render)
   }
   requestAnimationFrame(render)
