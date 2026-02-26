@@ -1,3 +1,13 @@
+/** Facility fields joined when fetching complaints (address = location) */
+export interface FacilityLocation {
+  address?: string | null
+  name?: string | null
+  city?: string | null
+  state?: string | null
+  country?: string | null
+  postal_code?: string | null
+}
+
 export interface Complaint {
   id: string
   company_id: string
@@ -9,7 +19,17 @@ export interface Complaint {
   updated_at: string | null
   assigned_to_id: string | null
   product_id: string | null
+  facility_id?: string | null
   template_id: string | null
+  /** Joined from complaint_master_templates (complaint type/template via template_id); API may return as template (alias) or complaint_master_templates */
+  template?: { name: string } | null
+  complaint_master_templates?: { name: string } | null
+  /** Joined from products table (product name via product_id) */
+  products?: { name: string } | null
+  /** Joined from facilities table (address via facility_id) */
+  facilities?: FacilityLocation | null
+  /** Template-defined fields stored as JSON: object of field name -> value, or array of { field_name, value } */
+  custom_fields?: Record<string, unknown> | Array<{ field_name?: string; name?: string; value?: unknown }> | null
   /** Hierarchy: parent complaint id */
   parent_id?: string | null
   /** Hierarchy level (default 0) */

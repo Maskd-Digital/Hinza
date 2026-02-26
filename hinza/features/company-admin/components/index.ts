@@ -9,6 +9,7 @@ export { default as ProductsListPage } from './ProductsListPage'
 export { default as TemplatesListPage } from './TemplatesListPage'
 export { default as ComplaintsListPage } from './ComplaintsListPage'
 export { default as FacilitiesListPage } from './FacilitiesListPage'
+export { default as AnalyticsPage } from './AnalyticsPage'
 
 // Charts
 export { default as DonutChart } from './charts/DonutChart'

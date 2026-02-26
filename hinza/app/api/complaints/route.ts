@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const adminClient = createAdminClient();
     let query = adminClient
       .from('complaints')
-      .select('*')
+      .select('*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name)')
       .eq('company_id', companyId)
       .order('created_at', { ascending: false })
       .limit(200);

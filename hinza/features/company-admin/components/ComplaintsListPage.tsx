@@ -1,19 +1,9 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-
-interface Complaint {
-  id: string
-  title: string
-  description: string | null
-  status: string
-  priority: string | null
-  created_at: string
-  updated_at: string | null
-  assigned_to_id: string | null
-  product_id: string | null
-  template_id: string | null
-}
+import { Complaint } from '@/types/complaint'
+import { formatFacilityAddress, formatFacilityName } from '@/lib/utils'
+import ComplaintAdditionalDetails from '@/components/ComplaintAdditionalDetails'
 
 interface CompanyUser {
   id: string
@@ -369,10 +359,20 @@ export default function ComplaintsListPage({
                             />
                           </svg>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-[#081636] truncate max-w-xs">
-                            {complaint.title}
+                        <div className="min-w-0 space-y-0.5">
+                          <p className="text-sm font-semibold text-[#081636] truncate max-w-xs">
+                            {complaint.template?.name ?? complaint.complaint_master_templates?.name ?? complaint.title}
                           </p>
+                          {complaint.products?.name && (
+                            <p className="text-sm font-medium text-[#081636] truncate max-w-xs">
+                              Product: {complaint.products.name}
+                            </p>
+                          )}
+                          {complaint.facilities && formatFacilityAddress(complaint.facilities) !== '—' && (
+                            <p className="text-sm font-medium text-[#081636] truncate max-w-xs">
+                              Location: {formatFacilityAddress(complaint.facilities)}
+                            </p>
+                          )}
                           {complaint.description && (
                             <p className="text-sm text-[#081636] truncate max-w-xs">
                               {complaint.description}
@@ -439,8 +439,8 @@ export default function ComplaintsListPage({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
             {/* Modal Header */}
-            <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-              <h2 className="text-lg font-semibold text-[#081636] truncate pr-4">
+            <div className="sticky top-0 flex items-center justify-between bg-white px-6 py-4 shadow-sm">
+              <h2 className="text-lg font-semibold truncate pr-4" style={{ color: '#000' }}>
                 {selectedComplaint.title}
               </h2>
               <button
@@ -453,22 +453,42 @@ export default function ComplaintsListPage({
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="space-y-6 p-6">
-              {/* Description */}
-              {selectedComplaint.description && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700">Description</h3>
-                  <p className="mt-1 text-sm text-gray-600 whitespace-pre-line">
-                    {selectedComplaint.description}
-                  </p>
-                </div>
-              )}
+            {/* Modal Body - Template (top), Product, Location, then Description */}
+            <div className="space-y-6 p-6" style={{ color: '#000' }}>
+              {/* Complaint template / type (top importance) */}
+              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Complaint type</h3>
+                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
+                  {selectedComplaint.template?.name ?? selectedComplaint.complaint_master_templates?.name ?? '—'}
+                </p>
+              </div>
+
+              {/* Product */}
+              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Product</h3>
+                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
+                  {selectedComplaint.products?.name ?? '—'}
+                </p>
+              </div>
+
+              {/* Location (facility name) */}
+              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Location</h3>
+                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
+                  {formatFacilityName(selectedComplaint.facilities)}
+                </p>
+              </div>
+
+              {/* Additional details: description + custom_fields (photos resolved from Supabase storage) */}
+              <ComplaintAdditionalDetails
+                description={selectedComplaint.description}
+                customFields={selectedComplaint.custom_fields}
+              />
 
               {/* Meta info */}
-              <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex flex-wrap gap-4 text-sm" style={{ color: '#000' }}>
                 <span>
-                  <strong className="text-gray-700">Status:</strong>{' '}
+                  <strong>Status:</strong>{' '}
                   <span
                     className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
                       selectedComplaint.status
@@ -478,7 +498,7 @@ export default function ComplaintsListPage({
                   </span>
                 </span>
                 <span>
-                  <strong className="text-gray-700">Priority:</strong>{' '}
+                  <strong>Priority:</strong>{' '}
                   {selectedComplaint.priority ? (
                     <span
                       className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityColor(
@@ -493,19 +513,19 @@ export default function ComplaintsListPage({
                   )}
                 </span>
                 <span>
-                  <strong className="text-gray-700">Created:</strong>{' '}
+                  <strong>Created:</strong>{' '}
                   {formatDate(selectedComplaint.created_at)}
                 </span>
                 <span>
-                  <strong className="text-gray-700">Assigned to:</strong>{' '}
+                  <strong>Assigned to:</strong>{' '}
                   {getAssigneeName(selectedComplaint.assigned_to_id) ?? 'Unassigned'}
                 </span>
               </div>
 
               {/* Assign / Reassign to QA Executive */}
               {canAssignComplaints && selectedComplaint.status?.toLowerCase() !== 'closed' && (
-                <div className="rounded-lg bg-blue-50 p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
-                  <h3 className="mb-2 text-sm font-medium text-gray-700">
+                <div className="rounded-lg bg-blue-50 p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)', color: '#000' }}>
+                  <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>
                     {selectedComplaint.assigned_to_id ? 'Reassign' : 'Assign'} to QA Executive
                   </h3>
                   <div className="flex items-center gap-3">
@@ -515,7 +535,8 @@ export default function ComplaintsListPage({
                         handleAssign(selectedComplaint.id, e.target.value)
                       }
                       disabled={assigning}
-                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                      style={{ color: '#000' }}
                     >
                       <option value="">Unassigned</option>
                       {qaExecutives.length > 0 ? (

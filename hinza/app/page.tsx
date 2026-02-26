@@ -3,12 +3,14 @@ import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { isSystemAdmin } from '@/lib/auth/permissions'
 import { isQAManager } from '@/lib/auth/qa-manager'
 import { isQAExecutive } from '@/lib/auth/qa-executive'
+import LandingHero from '@/components/LandingHero'
 
 export default async function Home() {
   const user = await getUserWithRoles()
 
+  // If not authenticated, show public landing page
   if (!user) {
-    redirect('/login')
+    return <LandingHero />
   }
 
   // Check if user is active
@@ -32,3 +34,4 @@ export default async function Home() {
   }
   redirect(`/company-admin/${user.company_id}`)
 }
+

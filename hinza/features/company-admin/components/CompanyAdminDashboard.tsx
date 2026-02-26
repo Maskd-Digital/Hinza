@@ -148,123 +148,6 @@ export default function CompanyAdminDashboard({
         />
       </div>
 
-      {/* Main Charts Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Complaints by Status */}
-        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
-          <h3 className="text-lg font-semibold text-[#081636] mb-4">
-            Complaints by Status
-          </h3>
-          <div className="flex items-center justify-center gap-8">
-            <DonutChart
-              data={complaintsStatusData}
-              centerLabel="Total"
-              size={180}
-            />
-            <div className="space-y-2">
-              {complaintsStatusData.map((item) => (
-                <div key={item.label} className="flex items-center gap-2">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-sm text-[#081636]">{item.label}</span>
-                  <span className="text-sm font-medium text-[#081636]">
-                    ({item.value})
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* User Status */}
-        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
-          <h3 className="text-lg font-semibold text-[#081636] mb-4">
-            User Status
-          </h3>
-          <div className="flex items-center justify-center gap-8">
-            <DonutChart
-              data={usersStatusData}
-              centerLabel="Users"
-              size={180}
-            />
-            <div className="space-y-3">
-              {usersStatusData.map((item) => (
-                <div key={item.label} className="flex items-center gap-3">
-                  <div
-                    className="h-4 w-4 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <div>
-                    <span className="text-sm font-medium text-[#081636]">
-                      {item.value}
-                    </span>
-                    <span className="ml-2 text-sm text-[#081636]">
-                      {item.label}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Complaints Timeline */}
-      <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
-<h3 className="text-lg font-semibold text-[#081636] mb-4">
-        Complaints Timeline (Last 30 Days)
-        </h3>
-        <BarChart
-          data={complaintsTimelineData}
-          height={150}
-          showLabels={false}
-        />
-        <div className="mt-2 flex justify-between text-xs text-[#081636]">
-          <span>30 days ago</span>
-          <span>Today</span>
-        </div>
-      </div>
-
-      {/* Bottom Grid - Users by Role & Recent Activity */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Users by Role */}
-        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
-          <h3 className="text-lg font-semibold text-[#081636] mb-4">
-            Users by Role
-          </h3>
-          {stats.usersByRole.length > 0 ? (
-            <HorizontalBarChart
-              data={stats.usersByRole.map((r) => ({
-                label: r.role_name,
-                value: r.count,
-              }))}
-            />
-          ) : (
-            <p className="text-sm text-[#081636] italic">No roles defined yet</p>
-          )}
-        </div>
-
-        {/* Product Hierarchy */}
-        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
-          <h3 className="text-lg font-semibold text-[#081636] mb-4">
-            Product Hierarchy
-          </h3>
-          {stats.productsByLevel.length > 0 ? (
-            <HorizontalBarChart
-              data={stats.productsByLevel.map((p) => ({
-                label: p.level === 0 ? 'Root Categories' : `Level ${p.level}`,
-                value: p.count,
-                color: p.level === 0 ? '#8b5cf6' : p.level === 1 ? '#3b82f6' : '#10b981',
-              }))}
-            />
-          ) : (
-            <p className="text-sm text-[#081636] italic">No products added yet</p>
-          )}
-        </div>
-      </div>
-
       {/* Recent Activity */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent Users */}
@@ -332,6 +215,11 @@ export default function CompanyAdminDashboard({
                   className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
                 >
                   <div className="min-w-0 flex-1">
+                    {(complaint.template?.name ?? complaint.complaint_master_templates?.name) && (
+                      <p className="truncate text-sm font-semibold text-[#081636]">
+                        {complaint.template?.name ?? complaint.complaint_master_templates?.name}
+                      </p>
+                    )}
                     <p className="truncate text-sm font-medium text-[#081636]">
                       {complaint.title}
                     </p>

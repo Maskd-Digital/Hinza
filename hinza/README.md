@@ -34,6 +34,8 @@ Web application for managing complaints, companies, users, and facilities with r
    ```
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   # Optional: bucket for complaint photo evidence (defaults to "complaints")
+   # NEXT_PUBLIC_SUPABASE_COMPLAINTS_BUCKET=complaints
    ```
 
 4. Set up Supabase:
@@ -42,6 +44,7 @@ Web application for managing complaints, companies, users, and facilities with r
      - `users`
    - Enable Row Level Security (RLS) policies
    - See `API_CONTRACTS.md` for schema details
+   - **Storage (complaint photos):** Create a bucket named `complaints` (or set `NEXT_PUBLIC_SUPABASE_COMPLAINTS_BUCKET`), set it to **Public**, then run `sql/storage_complaints_bucket_policies.sql` in the SQL Editor so the frontend can load images.
 
 5. Run the development server:
    ```bash

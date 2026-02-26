@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { Complaint } from '@/types/complaint'
 import { Permission } from '@/types/auth'
 import { hasPermission } from '@/lib/auth/permissions'
+import { formatFacilityName } from '@/lib/utils'
+import ComplaintAdditionalDetails from '@/components/ComplaintAdditionalDetails'
 
 interface QAManagerComplaintsPageProps {
   companyId: string
@@ -303,9 +305,9 @@ export default function QAManagerComplaintsPage({
                 {filteredComplaints.map((c) => (
                   <tr key={c.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div>
-                        <p className="text-sm font-medium text-[#081636] truncate max-w-xs">
-                          {c.title}
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-semibold text-[#081636] truncate max-w-xs">
+                          {c.template?.name ?? c.complaint_master_templates?.name ?? c.title}
                         </p>
                         {c.description && (
                           <p className="text-sm text-[#081636] truncate max-w-xs">
@@ -349,8 +351,8 @@ export default function QAManagerComplaintsPage({
       {selectedComplaint && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
-            <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-              <h2 className="text-lg font-semibold text-[#081636]">
+            <div className="sticky top-0 flex items-center justify-between bg-white px-6 py-4 shadow-sm">
+              <h2 className="text-lg font-semibold" style={{ color: '#000' }}>
                 {selectedComplaint.title}
               </h2>
               <button
@@ -362,34 +364,52 @@ export default function QAManagerComplaintsPage({
                 </svg>
               </button>
             </div>
-            <div className="space-y-6 p-6">
-              {selectedComplaint.description && (
-                <div>
-                  <h3 className="text-sm font-medium text-[#081636]">Description</h3>
-                  <p className="mt-1 text-sm text-gray-600">{selectedComplaint.description}</p>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-4 text-sm">
+            <div className="space-y-6 p-6" style={{ color: '#000' }}>
+              {/* Complaint type (top), Product, Location, then Description */}
+              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Complaint type</h3>
+                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
+                  {selectedComplaint.template?.name ?? selectedComplaint.complaint_master_templates?.name ?? '—'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Product</h3>
+                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
+                  {selectedComplaint.products?.name ?? '—'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Location</h3>
+                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
+                  {formatFacilityName(selectedComplaint.facilities)}
+                </p>
+              </div>
+              <ComplaintAdditionalDetails
+                description={selectedComplaint.description}
+                customFields={selectedComplaint.custom_fields}
+              />
+
+              <div className="flex flex-wrap gap-4 text-sm" style={{ color: '#000' }}>
                 <span>
-                  <strong className="text-[#081636]">Status:</strong>{' '}
+                  <strong>Status:</strong>{' '}
                   <span className={getStatusColor(selectedComplaint.status)}>
                     {selectedComplaint.status?.replace(/_/g, ' ')}
                   </span>
                 </span>
                 <span>
-                  <strong className="text-[#081636]">Priority:</strong>{' '}
+                  <strong>Priority:</strong>{' '}
                   {selectedComplaint.priority ?? '—'}
                 </span>
                 <span>
-                  <strong className="text-[#081636]">Created:</strong>{' '}
+                  <strong>Created:</strong>{' '}
                   {formatDate(selectedComplaint.created_at)}
                 </span>
               </div>
 
               {/* Assign / Reassign to QA Executive - always show for QA Manager (page is role-gated) */}
               {selectedComplaint.status?.toLowerCase() !== 'closed' && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                  <h3 className="mb-2 text-sm font-medium text-[#081636]">
+                <div className="rounded-lg bg-amber-50 p-4" style={{ color: '#000', boxShadow: '0 2px 4px rgba(245, 158, 11, 0.15)' }}>
+                  <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>
                     {selectedComplaint.assigned_to_id ? 'Reassign' : 'Assign'} to QA Executive
                   </h3>
                   <div className="flex items-center gap-3">
@@ -399,7 +419,8 @@ export default function QAManagerComplaintsPage({
                         handleAssign(selectedComplaint.id, e.target.value)
                       }
                       disabled={assigning}
-                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-50"
+                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-50"
+                      style={{ color: '#000' }}
                     >
                       <option value="">Unassigned</option>
                       {qaExecutives.length > 0 ? (
@@ -424,14 +445,14 @@ export default function QAManagerComplaintsPage({
                 </div>
               )}
 
-              <div>
-                <h3 className="mb-2 text-sm font-medium text-[#081636]">
+              <div style={{ color: '#000' }}>
+                <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>
                   Documents (CAPA / SLA)
                 </h3>
-                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <div className="space-y-3 rounded-lg bg-gray-50 p-4" style={{ boxShadow: '0 1px 3px rgba(15, 23, 42, 0.12)' }}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-[#081636]">CAPA</p>
+                      <p className="text-sm font-medium" style={{ color: '#000' }}>CAPA</p>
                       {selectedComplaint.capa_document_url ? (
                         <a
                           href={selectedComplaint.capa_document_url}
@@ -442,7 +463,7 @@ export default function QAManagerComplaintsPage({
                           View document
                         </a>
                       ) : (
-                        <p className="text-sm text-[#081636]">No document linked</p>
+                        <p className="text-sm" style={{ color: '#000' }}>No document linked</p>
                       )}
                     </div>
                     {selectedComplaint.capa_document_url && (
@@ -467,7 +488,7 @@ export default function QAManagerComplaintsPage({
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-[#081636]">SLA</p>
+                      <p className="text-sm font-medium" style={{ color: '#000' }}>SLA</p>
                       {selectedComplaint.sla_document_url ? (
                         <a
                           href={selectedComplaint.sla_document_url}
@@ -478,7 +499,7 @@ export default function QAManagerComplaintsPage({
                           View document
                         </a>
                       ) : (
-                        <p className="text-sm text-[#081636]">No document linked</p>
+                        <p className="text-sm" style={{ color: '#000' }}>No document linked</p>
                       )}
                     </div>
                     {selectedComplaint.sla_document_url && (

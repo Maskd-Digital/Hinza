@@ -28,6 +28,7 @@ export default function CompanyAdminSidebar({
   const canViewTemplates = hasPermission(permissions, 'templates:read')
   const canViewComplaints = hasPermission(permissions, 'complaints:read')
   const canViewFacilities = hasPermission(permissions, 'facilities:read')
+  const canViewReports = hasPermission(permissions, 'reports:read')
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -280,7 +281,7 @@ export default function CompanyAdminSidebar({
             </div>
           )}
 
-          {/* Reports */}
+          {/* Analytics */}
           {canViewReports && (
             <div>
               <Link

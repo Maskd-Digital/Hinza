@@ -46,12 +46,14 @@ export interface CompanyAdminStats {
     count: number
   }>
   
-  // Recent complaints
+  // Recent complaints (complaint_master_templates joined for template/type name)
   recentComplaints: Array<{
     id: string
     title: string
     status: string
     created_at: string
+    template?: { name: string } | null
+    complaint_master_templates?: { name: string } | null
   }>
   
   // Recent users
@@ -156,10 +158,10 @@ export async function GET(request: NextRequest) {
         })
       }
       
-      // Get recent complaints
+      // Get recent complaints with template name (complaint type)
       const { data: recentComplaintsData } = await adminClient
         .from('complaints')
-        .select('id, title, status, created_at')
+        .select('id, title, status, created_at, template:complaint_master_templates!template_id(name)')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
         .limit(5)

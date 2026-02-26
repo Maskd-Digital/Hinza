@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { Complaint } from '@/types/complaint'
 import { Permission } from '@/types/auth'
 import { hasPermission } from '@/lib/auth/permissions'
+import { formatFacilityName } from '@/lib/utils'
+import ComplaintAdditionalDetails from '@/components/ComplaintAdditionalDetails'
 
 interface QAExecutiveComplaintsPageProps {
   companyId: string
@@ -277,9 +279,9 @@ export default function QAExecutiveComplaintsPage({
                 {filteredComplaints.map((c) => (
                   <tr key={c.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div>
-                        <p className="text-sm font-medium text-[#081636] truncate max-w-xs">
-                          {c.title}
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-semibold text-[#081636] truncate max-w-xs">
+                          {c.template?.name ?? c.complaint_master_templates?.name ?? c.title}
                         </p>
                         {c.description && (
                           <p className="text-sm text-[#081636] truncate max-w-xs">
@@ -328,8 +330,8 @@ export default function QAExecutiveComplaintsPage({
       {selectedComplaint && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
-            <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-              <h2 className="text-lg font-semibold text-[#081636] truncate pr-4">
+            <div className="sticky top-0 flex items-center justify-between bg-white px-6 py-4 shadow-sm">
+              <h2 className="text-lg font-semibold truncate pr-4" style={{ color: '#000' }}>
                 {selectedComplaint.title}
               </h2>
               <button
@@ -341,26 +343,44 @@ export default function QAExecutiveComplaintsPage({
                 </svg>
               </button>
             </div>
-            <div className="space-y-6 p-6">
-              {selectedComplaint.description && (
-                <div>
-                  <h3 className="text-sm font-medium text-[#081636]">Description</h3>
-                  <p className="mt-1 text-sm text-[#081636]">{selectedComplaint.description}</p>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-4 text-sm">
+            <div className="space-y-6 p-6" style={{ color: '#000' }}>
+              {/* Complaint type (top), Product, Location, then Description */}
+              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Complaint type</h3>
+                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
+                  {selectedComplaint.template?.name ?? selectedComplaint.complaint_master_templates?.name ?? '—'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Product</h3>
+                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
+                  {selectedComplaint.products?.name ?? '—'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Location</h3>
+                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
+                  {formatFacilityName(selectedComplaint.facilities)}
+                </p>
+              </div>
+              <ComplaintAdditionalDetails
+                description={selectedComplaint.description}
+                customFields={selectedComplaint.custom_fields}
+              />
+
+              <div className="flex flex-wrap gap-4 text-sm" style={{ color: '#000' }}>
                 <span>
-                  <strong className="text-[#081636]">Status:</strong>{' '}
+                  <strong>Status:</strong>{' '}
                   <span className={getStatusColor(selectedComplaint.status)}>
                     {selectedComplaint.status}
                   </span>
                 </span>
                 <span>
-                  <strong className="text-[#081636]">Priority:</strong>{' '}
+                  <strong>Priority:</strong>{' '}
                   {selectedComplaint.priority ?? '—'}
                 </span>
                 <span>
-                  <strong className="text-[#081636]">Created:</strong>{' '}
+                  <strong>Created:</strong>{' '}
                   {formatDate(selectedComplaint.created_at)}
                 </span>
                 {selectedComplaint.submitted_for_verification_at && (
@@ -371,8 +391,8 @@ export default function QAExecutiveComplaintsPage({
               </div>
 
               {/* Deadline */}
-              <div>
-                <h3 className="mb-2 text-sm font-medium text-[#081636]">Deadline</h3>
+              <div style={{ color: '#000' }}>
+                <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>Deadline</h3>
                 <div className="flex gap-2">
                   <input
                     type="datetime-local"
@@ -380,7 +400,8 @@ export default function QAExecutiveComplaintsPage({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, deadline: e.target.value }))
                     }
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
+                    style={{ color: '#000' }}
                   />
                   <button
                     onClick={handleSaveDeadline}
@@ -393,14 +414,14 @@ export default function QAExecutiveComplaintsPage({
               </div>
 
               {/* Attach documents (CAPA / SLA URLs) */}
-              <div>
-                <h3 className="mb-2 text-sm font-medium text-[#081636]">Attach documents</h3>
-                <p className="mb-2 text-xs text-[#081636]">
+              <div style={{ color: '#000' }}>
+                <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>Attach documents</h3>
+                <p className="mb-2 text-xs" style={{ color: '#000' }}>
                   Add links to CAPA and SLA documents (e.g. from your storage or shared drive).
                 </p>
-                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <div className="space-y-3 rounded-lg bg-gray-50 p-4" style={{ boxShadow: '0 1px 3px rgba(15, 23, 42, 0.12)' }}>
                   <div>
-                    <label className="block text-xs font-medium text-[#081636]">CAPA document URL</label>
+                    <label className="block text-xs font-medium" style={{ color: '#000' }}>CAPA document URL</label>
                     <input
                       type="url"
                       value={formData.capa_document_url}
@@ -408,11 +429,12 @@ export default function QAExecutiveComplaintsPage({
                         setFormData((prev) => ({ ...prev, capa_document_url: e.target.value }))
                       }
                       placeholder="https://..."
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
+                      style={{ color: '#000' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#081636]">SLA document URL</label>
+                    <label className="block text-xs font-medium" style={{ color: '#000' }}>SLA document URL</label>
                     <input
                       type="url"
                       value={formData.sla_document_url}
@@ -420,7 +442,8 @@ export default function QAExecutiveComplaintsPage({
                         setFormData((prev) => ({ ...prev, sla_document_url: e.target.value }))
                       }
                       placeholder="https://..."
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
+                      style={{ color: '#000' }}
                     />
                   </div>
                   <button
