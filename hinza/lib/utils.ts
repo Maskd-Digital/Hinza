@@ -50,20 +50,20 @@ export function getCustomFieldsEntries(
 ): Array<{ label: string; value: string; isPhoto?: boolean }> {
   if (customFields == null || (Array.isArray(customFields) && customFields.length === 0)) return []
   if (Array.isArray(customFields)) {
-    return customFields
-      .map((item) => {
-        const label = (item?.field_name ?? item?.name ?? '') as string
-        const val = item?.value
-        if (label == null || val == null) return null
-        const valueStr =
-          typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val)
-        return {
+    return customFields.flatMap((item) => {
+      const label = (item?.field_name ?? item?.name ?? '') as string
+      const val = item?.value
+      if (label == null || val == null) return []
+      const valueStr =
+        typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val)
+      return [
+        {
           label: String(label).replace(/_/g, ' ').trim() || '—',
           value: valueStr,
           isPhoto: isPhotoField(String(label).replace(/_/g, ' ').trim(), valueStr),
-        }
-      })
-      .filter((x): x is { label: string; value: string; isPhoto?: boolean } => x != null)
+        },
+      ]
+    })
   }
   return Object.entries(customFields)
     .filter(([, v]) => v != null && v !== '')
