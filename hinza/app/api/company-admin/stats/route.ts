@@ -165,8 +165,20 @@ export async function GET(request: NextRequest) {
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
         .limit(5)
-      
-      recentComplaints = recentComplaintsData || []
+
+      // Normalize template: Supabase can return it as array from the relation; we need a single object
+      recentComplaints = (recentComplaintsData || []).map((c) => {
+        const raw = c as { id: string; title: string; status: string; created_at: string; template?: { name: string } | { name: string }[] | null }
+        const templateObj = Array.isArray(raw.template) ? raw.template[0] ?? null : raw.template ?? null
+        return {
+          id: raw.id,
+          title: raw.title,
+          status: raw.status,
+          created_at: raw.created_at,
+          template: templateObj,
+          complaint_master_templates: templateObj,
+        }
+      })
     } catch {
       // Table might not exist yet
     }
