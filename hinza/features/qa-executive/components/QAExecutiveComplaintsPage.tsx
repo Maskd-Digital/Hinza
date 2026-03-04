@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import { Complaint } from '@/types/complaint'
 import { Permission } from '@/types/auth'
-import { hasPermission } from '@/lib/auth/permissions'
 import { formatFacilityName } from '@/lib/utils'
-import ComplaintAdditionalDetails from '@/components/ComplaintAdditionalDetails'
 
 interface QAExecutiveComplaintsPageProps {
   companyId: string
@@ -25,31 +24,10 @@ export default function QAExecutiveComplaintsPage({
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [formData, setFormData] = useState({
-    deadline: '',
-    capa_document_url: '',
-    sla_document_url: '',
-  })
-
-  const canResolve = hasPermission(userPermissions, 'complaints:resolve')
 
   useEffect(() => {
     fetchComplaints()
   }, [companyId, userId])
-
-  useEffect(() => {
-    if (selectedComplaint) {
-      setFormData({
-        deadline: selectedComplaint.deadline
-          ? new Date(selectedComplaint.deadline).toISOString().slice(0, 16)
-          : '',
-        capa_document_url: selectedComplaint.capa_document_url || '',
-        sla_document_url: selectedComplaint.sla_document_url || '',
-      })
-    }
-  }, [selectedComplaint])
 
   const fetchComplaints = async () => {
     setLoading(true)
@@ -65,70 +43,6 @@ export default function QAExecutiveComplaintsPage({
       setError(err instanceof Error ? err.message : 'Failed to load complaints')
     } finally {
       setLoading(false)
-    }
-  }
-
-  const updateComplaint = async (
-    complaintId: string,
-    updates: Record<string, unknown>
-  ) => {
-    setSaving(true)
-    try {
-      const res = await fetch(`/api/complaints/${complaintId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to update')
-      await fetchComplaints()
-      if (selectedComplaint?.id === complaintId) {
-        setSelectedComplaint(data as Complaint)
-      }
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleSaveDeadline = () => {
-    if (!selectedComplaint) return
-    const value = formData.deadline ? new Date(formData.deadline).toISOString() : null
-    updateComplaint(selectedComplaint.id, { deadline: value })
-  }
-
-  const handleSaveDocuments = () => {
-    if (!selectedComplaint) return
-    updateComplaint(selectedComplaint.id, {
-      capa_document_url: formData.capa_document_url || null,
-      sla_document_url: formData.sla_document_url || null,
-    })
-  }
-
-  const handleResolve = () => {
-    if (!selectedComplaint || !canResolve) return
-    if (!confirm('Mark this complaint as resolved?')) return
-    updateComplaint(selectedComplaint.id, { status: 'resolved' })
-    setSelectedComplaint(null)
-  }
-
-  const handleSendForVerification = () => {
-    if (!selectedComplaint) return
-    if (
-      !confirm(
-        'Send this complaint to QA Manager for verification? They will verify your CAPA/SLA documents.'
-      )
-    )
-      return
-    updateComplaint(selectedComplaint.id, {
-      submitted_for_verification_at: new Date().toISOString(),
-    })
-    if (selectedComplaint) {
-      setSelectedComplaint({
-        ...selectedComplaint,
-        submitted_for_verification_at: new Date().toISOString(),
-      })
     }
   }
 
@@ -311,12 +225,12 @@ export default function QAExecutiveComplaintsPage({
                       )}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right">
-                      <button
-                        onClick={() => setSelectedComplaint(c)}
+                      <Link
+                        href={`/qa-executive/${companyId}/complaints/${c.id}`}
                         className="text-sm font-medium text-[#0108B8] hover:text-[#0108B8]/90"
                       >
                         Details & actions
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -326,161 +240,6 @@ export default function QAExecutiveComplaintsPage({
         </div>
       )}
 
-      {/* Detail modal */}
-      {selectedComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
-            <div className="sticky top-0 flex items-center justify-between bg-white px-6 py-4 shadow-sm">
-              <h2 className="text-lg font-semibold truncate pr-4" style={{ color: '#000' }}>
-                {selectedComplaint.title}
-              </h2>
-              <button
-                onClick={() => setSelectedComplaint(null)}
-                className="flex-shrink-0 rounded-lg p-1 text-[#081636] hover:bg-gray-100 hover:text-[#081636]"
-              >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-6 p-6" style={{ color: '#000' }}>
-              {/* Complaint type (top), Product, Location, then Description */}
-              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Complaint type</h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
-                  {selectedComplaint.template?.name ?? selectedComplaint.complaint_master_templates?.name ?? '—'}
-                </p>
-              </div>
-              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Product</h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
-                  {selectedComplaint.products?.name ?? '—'}
-                </p>
-              </div>
-              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Location</h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
-                  {formatFacilityName(selectedComplaint.facilities)}
-                </p>
-              </div>
-              <ComplaintAdditionalDetails
-                description={selectedComplaint.description}
-                customFields={selectedComplaint.custom_fields}
-              />
-
-              <div className="flex flex-wrap gap-4 text-sm" style={{ color: '#000' }}>
-                <span>
-                  <strong>Status:</strong>{' '}
-                  <span className={getStatusColor(selectedComplaint.status)}>
-                    {selectedComplaint.status}
-                  </span>
-                </span>
-                <span>
-                  <strong>Priority:</strong>{' '}
-                  {selectedComplaint.priority ?? '—'}
-                </span>
-                <span>
-                  <strong>Created:</strong>{' '}
-                  {formatDate(selectedComplaint.created_at)}
-                </span>
-                {selectedComplaint.submitted_for_verification_at && (
-                  <span className="text-[#0108B8]">
-                    Sent for verification {formatDate(selectedComplaint.submitted_for_verification_at)}
-                  </span>
-                )}
-              </div>
-
-              {/* Deadline */}
-              <div style={{ color: '#000' }}>
-                <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>Deadline</h3>
-                <div className="flex gap-2">
-                  <input
-                    type="datetime-local"
-                    value={formData.deadline}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, deadline: e.target.value }))
-                    }
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
-                    style={{ color: '#000' }}
-                  />
-                  <button
-                    onClick={handleSaveDeadline}
-                    disabled={saving}
-                    className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
-                  >
-                    {saving ? 'Saving...' : 'Save deadline'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Attach documents (CAPA / SLA URLs) */}
-              <div style={{ color: '#000' }}>
-                <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>Attach documents</h3>
-                <p className="mb-2 text-xs" style={{ color: '#000' }}>
-                  Add links to CAPA and SLA documents (e.g. from your storage or shared drive).
-                </p>
-                <div className="space-y-3 rounded-lg bg-gray-50 p-4" style={{ boxShadow: '0 1px 3px rgba(15, 23, 42, 0.12)' }}>
-                  <div>
-                    <label className="block text-xs font-medium" style={{ color: '#000' }}>CAPA document URL</label>
-                    <input
-                      type="url"
-                      value={formData.capa_document_url}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, capa_document_url: e.target.value }))
-                      }
-                      placeholder="https://..."
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
-                      style={{ color: '#000' }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium" style={{ color: '#000' }}>SLA document URL</label>
-                    <input
-                      type="url"
-                      value={formData.sla_document_url}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, sla_document_url: e.target.value }))
-                      }
-                      placeholder="https://..."
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
-                      style={{ color: '#000' }}
-                    />
-                  </div>
-                  <button
-                    onClick={handleSaveDocuments}
-                    disabled={saving}
-                    className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
-                  >
-                    {saving ? 'Saving...' : 'Save document links'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Send for verification */}
-              {!/resolved|closed/i.test(selectedComplaint.status || '') && (
-                <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-4">
-                  <button
-                    onClick={handleSendForVerification}
-                    disabled={saving}
-                    className="rounded-lg border border-teal-600 bg-white px-4 py-2 text-sm font-medium text-teal-600 hover:bg-teal-50 disabled:opacity-50"
-                  >
-                    Send for verification (to QA Manager)
-                  </button>
-                  {canResolve && (
-                    <button
-                      onClick={handleResolve}
-                      disabled={saving}
-                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-                    >
-                      Resolve complaint
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

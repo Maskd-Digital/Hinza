@@ -16,18 +16,31 @@ export async function GET(request: NextRequest) {
   
   const { searchParams } = new URL(request.url)
   const companyId = searchParams.get('company_id')
-  
+  const roleId = searchParams.get('role_id')
+
   try {
     let query = adminClient
       .from('users')
       .select('*')
-    
+
     if (companyId) {
       query = query.eq('company_id', companyId)
     }
-    
+
+    if (roleId) {
+      const { data: userRoles } = await adminClient
+        .from('user_roles')
+        .select('user_id')
+        .eq('role_id', roleId)
+      const userIds = userRoles?.map((ur) => ur.user_id) ?? []
+      if (userIds.length === 0) {
+        return NextResponse.json([])
+      }
+      query = query.in('id', userIds)
+    }
+
     const { data: users, error } = await query
-    
+
     if (error) {
       throw error
     }

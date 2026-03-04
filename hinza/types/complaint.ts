@@ -48,6 +48,46 @@ export interface Complaint {
   capa_verified_at?: string | null
   sla_verified_at?: string | null
   verified_by?: string | null
+  /** Review flow: pending_review | approved | rejected */
+  review_status?: string | null
+  reviewed_at?: string | null
+  reviewed_by?: string | null
+  rejection_reason?: string | null
+}
+
+export interface ComplaintComment {
+  id: string
+  complaint_id: string
+  user_id: string | null
+  body: string
+  created_at: string
+  /** Joined: author display name */
+  user?: { full_name: string | null; email: string | null } | null
+}
+
+export interface ComplaintDocument {
+  id: string
+  complaint_id: string
+  document_type: 'capa' | 'sla'
+  file_path: string
+  file_name: string | null
+  uploaded_at: string
+  uploaded_by: string | null
+  /** Joined: uploader display name */
+  uploader?: { full_name: string | null; email: string | null } | null
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  company_id: string
+  type: string
+  related_entity_type: string | null
+  related_entity_id: string | null
+  title: string
+  body: string | null
+  read_at: string | null
+  created_at: string
 }
 
 export interface UpdateComplaintInput {
@@ -63,4 +103,8 @@ export interface UpdateComplaintInput {
   capa_verified_at?: string | null
   sla_verified_at?: string | null
   verified_by?: string | null
+  review_status?: string | null
+  reviewed_at?: string | null
+  reviewed_by?: string | null
+  rejection_reason?: string | null
 }

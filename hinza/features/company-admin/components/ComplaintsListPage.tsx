@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import { Complaint } from '@/types/complaint'
 import { formatFacilityAddress, formatFacilityName } from '@/lib/utils'
-import ComplaintAdditionalDetails from '@/components/ComplaintAdditionalDetails'
 
 interface CompanyUser {
   id: string
@@ -29,9 +29,8 @@ export default function ComplaintsListPage({
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null)
   const [users, setUsers] = useState<CompanyUser[]>([])
-  const [assigning, setAssigning] = useState(false)
+  const [assigning, setAssigning] = useState<string | null>(null)
 
   useEffect(() => {
     fetchComplaints()
@@ -75,14 +74,14 @@ export default function ComplaintsListPage({
   }, [users])
 
   const handleAssign = async (complaintId: string, assignedToId: string) => {
-    setAssigning(true)
+    setAssigning(complaintId)
     try {
       const res = await fetch(`/api/complaints/${complaintId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           assigned_to_id: assignedToId || null,
-          ...(assignedToId ? { status: 'assigned' } : {}),
+          ...(assignedToId ? { status: 'in_progress' } : {}),
         }),
       })
       const data = await res.json()
@@ -90,13 +89,10 @@ export default function ComplaintsListPage({
         throw new Error(data.error || 'Failed to assign')
       }
       await fetchComplaints()
-      if (selectedComplaint?.id === complaintId) {
-        setSelectedComplaint(data as Complaint)
-      }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to assign')
     } finally {
-      setAssigning(false)
+      setAssigning(null)
     }
   }
 
@@ -413,13 +409,36 @@ export default function ComplaintsListPage({
                       {formatDate(complaint.created_at)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right">
-                      <button
-                        onClick={() => setSelectedComplaint(complaint)}
-                        className="text-sm font-medium hover:opacity-80"
-                        style={{ color: '#2563EB' }}
-                      >
-                        View
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {canAssignComplaints && complaint.status?.toLowerCase() !== 'closed' && (
+                          <select
+                            value={complaint.assigned_to_id ?? ''}
+                            onChange={(e) => handleAssign(complaint.id, e.target.value)}
+                            disabled={assigning !== null}
+                            className="rounded border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                          >
+                            <option value="">Assign...</option>
+                            {qaExecutives.length > 0
+                              ? qaExecutives.map((u) => (
+                                  <option key={u.id} value={u.id}>
+                                    {u.full_name || u.email || u.id}
+                                  </option>
+                                ))
+                              : users.map((u) => (
+                                  <option key={u.id} value={u.id}>
+                                    {u.full_name || u.email || u.id}
+                                  </option>
+                                ))}
+                          </select>
+                        )}
+                        <Link
+                          href={`/company-admin/${companyId}/complaints/${complaint.id}`}
+                          className="text-sm font-medium hover:opacity-80"
+                          style={{ color: '#2563EB' }}
+                        >
+                          View
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -434,136 +453,6 @@ export default function ComplaintsListPage({
         Showing {filteredComplaints.length} of {complaints.length} complaints
       </div>
 
-      {/* Complaint Detail Modal */}
-      {selectedComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
-            {/* Modal Header */}
-            <div className="sticky top-0 flex items-center justify-between bg-white px-6 py-4 shadow-sm">
-              <h2 className="text-lg font-semibold truncate pr-4" style={{ color: '#000' }}>
-                {selectedComplaint.title}
-              </h2>
-              <button
-                onClick={() => setSelectedComplaint(null)}
-                className="flex-shrink-0 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-              >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Modal Body - Template (top), Product, Location, then Description */}
-            <div className="space-y-6 p-6" style={{ color: '#000' }}>
-              {/* Complaint template / type (top importance) */}
-              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Complaint type</h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
-                  {selectedComplaint.template?.name ?? selectedComplaint.complaint_master_templates?.name ?? '—'}
-                </p>
-              </div>
-
-              {/* Product */}
-              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Product</h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
-                  {selectedComplaint.products?.name ?? '—'}
-                </p>
-              </div>
-
-              {/* Location (facility name) */}
-              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Location</h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
-                  {formatFacilityName(selectedComplaint.facilities)}
-                </p>
-              </div>
-
-              {/* Additional details: description + custom_fields (photos resolved from Supabase storage) */}
-              <ComplaintAdditionalDetails
-                description={selectedComplaint.description}
-                customFields={selectedComplaint.custom_fields}
-              />
-
-              {/* Meta info */}
-              <div className="flex flex-wrap gap-4 text-sm" style={{ color: '#000' }}>
-                <span>
-                  <strong>Status:</strong>{' '}
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                      selectedComplaint.status
-                    )}`}
-                  >
-                    {formatStatus(selectedComplaint.status)}
-                  </span>
-                </span>
-                <span>
-                  <strong>Priority:</strong>{' '}
-                  {selectedComplaint.priority ? (
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityColor(
-                        selectedComplaint.priority
-                      )}`}
-                    >
-                      {selectedComplaint.priority.charAt(0).toUpperCase() +
-                        selectedComplaint.priority.slice(1)}
-                    </span>
-                  ) : (
-                    '—'
-                  )}
-                </span>
-                <span>
-                  <strong>Created:</strong>{' '}
-                  {formatDate(selectedComplaint.created_at)}
-                </span>
-                <span>
-                  <strong>Assigned to:</strong>{' '}
-                  {getAssigneeName(selectedComplaint.assigned_to_id) ?? 'Unassigned'}
-                </span>
-              </div>
-
-              {/* Assign / Reassign to QA Executive */}
-              {canAssignComplaints && selectedComplaint.status?.toLowerCase() !== 'closed' && (
-                <div className="rounded-lg bg-blue-50 p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)', color: '#000' }}>
-                  <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>
-                    {selectedComplaint.assigned_to_id ? 'Reassign' : 'Assign'} to QA Executive
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <select
-                      value={selectedComplaint.assigned_to_id ?? ''}
-                      onChange={(e) =>
-                        handleAssign(selectedComplaint.id, e.target.value)
-                      }
-                      disabled={assigning}
-                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-                      style={{ color: '#000' }}
-                    >
-                      <option value="">Unassigned</option>
-                      {qaExecutives.length > 0 ? (
-                        qaExecutives.map((u) => (
-                          <option key={u.id} value={u.id}>
-                            {u.full_name || u.email || u.id}
-                          </option>
-                        ))
-                      ) : (
-                        users.map((u) => (
-                          <option key={u.id} value={u.id}>
-                            {u.full_name || u.email || u.id}
-                            {u.roles?.length > 0 && ` (${u.roles.map((r) => r.name).join(', ')})`}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                    {assigning && (
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

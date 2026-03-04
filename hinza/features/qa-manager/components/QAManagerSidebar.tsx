@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import NotificationsDropdown from './NotificationsDropdown'
 
 interface QAManagerSidebarProps {
   companyId: string
@@ -31,8 +32,8 @@ export default function QAManagerSidebar({
     <aside className="w-64 flex-shrink-0 border-r border-[#0108B8] bg-[#0108B8]">
       <div className="flex h-full flex-col">
         <div className="border-b border-white/10 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 text-white">
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white/20 text-white">
               <svg
                 className="h-6 w-6"
                 fill="none"
@@ -53,6 +54,7 @@ export default function QAManagerSidebar({
               </h2>
               <p className="text-xs text-white/70">QA Manager</p>
             </div>
+            <NotificationsDropdown companyId={companyId} />
           </div>
         </div>
 

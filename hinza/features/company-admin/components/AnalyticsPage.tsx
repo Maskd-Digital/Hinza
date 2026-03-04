@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { CompanyAdminStats } from '@/app/api/company-admin/stats/route'
+import { exportAnalyticsToPdf } from '@/lib/export-analytics-pdf'
 import DonutChart from './charts/DonutChart'
 import BarChart from './charts/BarChart'
 import HorizontalBarChart from './charts/HorizontalBarChart'
@@ -55,6 +56,7 @@ export default function AnalyticsPage({
     )
   }
 
+  const m = stats.complaintMetrics
   const complaintsStatusData = [
     { label: 'Pending', value: stats.complaintsByStatus.pending, color: '#f59e0b' },
     { label: 'In Progress', value: stats.complaintsByStatus.in_progress, color: '#3b82f6' },
@@ -73,12 +75,58 @@ export default function AnalyticsPage({
     color: '#3b82f6',
   }))
 
+  const handleExportPdf = () => {
+    exportAnalyticsToPdf(stats, companyName)
+  }
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#081636]">Analytics</h1>
+          <p className="text-sm text-[#081636]">Reports and insights for {companyName}</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleExportPdf}
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:shadow-inner active:bg-blue-800"
+          style={{ boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.3), 0 2px 4px -2px rgba(37, 99, 235, 0.2)' }}
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Export PDF
+        </button>
+      </div>
+
+      {/* Complaint KPI cards */}
       <div>
-        <h1 className="text-2xl font-bold text-[#081636]">Analytics</h1>
-        <p className="text-sm text-[#081636]">Reports and insights for {companyName}</p>
+        <h2 className="mb-3 text-lg font-semibold text-[#081636]">Complaints overview</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="rounded-xl bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Open backlog</p>
+            <p className="mt-1 text-2xl font-bold text-[#081636]">{m.openBacklog}</p>
+            <p className="text-xs text-gray-500">Pending + In progress</p>
+          </div>
+          <div className="rounded-xl bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Overdue</p>
+            <p className="mt-1 text-2xl font-bold text-[#081636]">{m.overdue}</p>
+            <p className="text-xs text-gray-500">Past deadline</p>
+          </div>
+          <div className="rounded-xl bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Resolved (30d)</p>
+            <p className="mt-1 text-2xl font-bold text-[#081636]">{m.resolvedLast30Days}</p>
+            <p className="text-xs text-gray-500">Last 30 days</p>
+          </div>
+          <div className="rounded-xl bg-white p-4" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Avg resolution</p>
+            <p className="mt-1 text-2xl font-bold text-[#081636]">
+              {m.avgResolutionDays != null ? `${m.avgResolutionDays} days` : '—'}
+            </p>
+            <p className="text-xs text-gray-500">Resolved/closed</p>
+          </div>
+        </div>
       </div>
 
       {/* Charts Grid */}
@@ -109,6 +157,38 @@ export default function AnalyticsPage({
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Complaints by Priority */}
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="mb-4 text-lg font-semibold text-[#081636]">
+            Complaints by Priority
+          </h3>
+          {stats.complaintsByPriority.length > 0 ? (
+            <div className="flex items-center justify-center gap-6">
+              <DonutChart
+                data={stats.complaintsByPriority.map((p, i) => ({
+                  label: p.priority === 'unset' ? 'Unset' : p.priority.charAt(0).toUpperCase() + p.priority.slice(1),
+                  value: p.count,
+                  color: ['#ef4444', '#f59e0b', '#10b981', '#6b7280'][i % 4],
+                }))}
+                centerLabel="Total"
+                size={160}
+              />
+              <div className="space-y-2">
+                {stats.complaintsByPriority.map((p) => (
+                  <div key={p.priority} className="flex items-center gap-2">
+                    <span className="text-sm text-[#081636]">
+                      {p.priority === 'unset' ? 'Unset' : p.priority.charAt(0).toUpperCase() + p.priority.slice(1)}:
+                    </span>
+                    <span className="text-sm font-medium text-[#081636]">{p.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="py-8 text-center text-sm text-gray-500">No priority data</p>
+          )}
         </div>
 
         {/* User Status */}
@@ -144,20 +224,126 @@ export default function AnalyticsPage({
         </div>
       </div>
 
-      {/* Complaints Timeline */}
+      {/* Complaints Timelines: Opened vs Resolved */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="mb-4 text-lg font-semibold text-[#081636]">
+            Complaints opened (Last 30 Days)
+          </h3>
+          <BarChart
+            data={complaintsTimelineData}
+            height={150}
+            showLabels={false}
+          />
+          <div className="mt-2 flex justify-between text-xs text-[#081636]">
+            <span>30 days ago</span>
+            <span>Today</span>
+          </div>
+        </div>
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="mb-4 text-lg font-semibold text-[#081636]">
+            Complaints resolved (Last 30 Days)
+          </h3>
+          <BarChart
+            data={stats.complaintsTimelineResolved.map((item) => ({
+              label: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+              value: item.count,
+              color: '#10b981',
+            }))}
+            height={150}
+            showLabels={false}
+          />
+          <div className="mt-2 flex justify-between text-xs text-[#081636]">
+            <span>30 days ago</span>
+            <span>Today</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Complaints by Type (template) & by Product */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="mb-4 text-lg font-semibold text-[#081636]">
+            Complaints by type
+          </h3>
+          {stats.complaintsByTemplate.length > 0 ? (
+            <HorizontalBarChart
+              data={stats.complaintsByTemplate.slice(0, 10).map((t) => ({
+                label: t.template_name,
+                value: t.count,
+              }))}
+            />
+          ) : (
+            <p className="py-8 text-center text-sm text-gray-500">No complaint types yet</p>
+          )}
+        </div>
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="mb-4 text-lg font-semibold text-[#081636]">
+            Complaints by product
+          </h3>
+          {stats.complaintsByProduct.length > 0 ? (
+            <HorizontalBarChart
+              data={stats.complaintsByProduct.slice(0, 10).map((p) => ({
+                label: p.product_name,
+                value: p.count,
+              }))}
+            />
+          ) : (
+            <p className="py-8 text-center text-sm text-gray-500">No product data yet</p>
+          )}
+        </div>
+      </div>
+
+      {/* Complaints by Facility & Aging of open complaints */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="mb-4 text-lg font-semibold text-[#081636]">
+            Complaints by facility
+          </h3>
+          {stats.complaintsByFacility.length > 0 ? (
+            <HorizontalBarChart
+              data={stats.complaintsByFacility.slice(0, 10).map((f) => ({
+                label: f.facility_name,
+                value: f.count,
+              }))}
+            />
+          ) : (
+            <p className="py-8 text-center text-sm text-gray-500">No facility data yet</p>
+          )}
+        </div>
+        <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+          <h3 className="mb-4 text-lg font-semibold text-[#081636]">
+            Aging of open complaints
+          </h3>
+          {stats.complaintsAging.some((a) => a.count > 0) ? (
+            <HorizontalBarChart
+              data={stats.complaintsAging.map((a) => ({
+                label: a.label,
+                value: a.count,
+                color: a.bucket === '30+' ? '#ef4444' : a.bucket === '14-30' ? '#f59e0b' : '#3b82f6',
+              }))}
+            />
+          ) : (
+            <p className="py-8 text-center text-sm text-gray-500">No open complaints</p>
+          )}
+        </div>
+      </div>
+
+      {/* Resolution time distribution */}
       <div className="rounded-xl bg-white p-6" style={{ boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
         <h3 className="mb-4 text-lg font-semibold text-[#081636]">
-          Complaints Timeline (Last 30 Days)
+          Resolution time distribution
         </h3>
-        <BarChart
-          data={complaintsTimelineData}
-          height={150}
-          showLabels={false}
-        />
-        <div className="mt-2 flex justify-between text-xs text-[#081636]">
-          <span>30 days ago</span>
-          <span>Today</span>
-        </div>
+        {stats.resolutionTimeBuckets.some((b) => b.count > 0) ? (
+          <HorizontalBarChart
+            data={stats.resolutionTimeBuckets.map((b) => ({
+              label: b.label,
+              value: b.count,
+            }))}
+          />
+        ) : (
+          <p className="py-8 text-center text-sm text-gray-500">No resolved complaints yet</p>
+        )}
       </div>
 
       {/* Users by Role & Product Hierarchy */}

@@ -10,6 +10,9 @@ export { default as TemplatesListPage } from './TemplatesListPage'
 export { default as ComplaintsListPage } from './ComplaintsListPage'
 export { default as FacilitiesListPage } from './FacilitiesListPage'
 export { default as AnalyticsPage } from './AnalyticsPage'
+export { default as ManageRolesPage } from './ManageRolesPage'
+export { default as ViewUsersByRoleModal } from './ViewUsersByRoleModal'
+export { default as BulkAddUsersModal } from './BulkAddUsersModal'
 
 // Charts
 export { default as DonutChart } from './charts/DonutChart'

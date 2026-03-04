@@ -63,6 +63,21 @@ export interface CompanyAdminStats {
     email: string | null
     is_active: boolean
   }>
+
+  // Complaint metrics for management
+  complaintMetrics: {
+    openBacklog: number
+    overdue: number
+    resolvedLast30Days: number
+    avgResolutionDays: number | null
+  }
+  complaintsByPriority: Array<{ priority: string; count: number }>
+  complaintsByTemplate: Array<{ template_id: string | null; template_name: string; count: number }>
+  complaintsByProduct: Array<{ product_id: string | null; product_name: string; count: number }>
+  complaintsByFacility: Array<{ facility_id: string | null; facility_name: string; count: number }>
+  complaintsAging: Array<{ bucket: string; label: string; count: number }>
+  resolutionTimeBuckets: Array<{ bucket: string; label: string; count: number }>
+  complaintsTimelineResolved: Array<{ date: string; count: number }>
 }
 
 export async function GET(request: NextRequest) {
@@ -223,7 +238,7 @@ export async function GET(request: NextRequest) {
     // Get complaints timeline (last 30 days)
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    
+
     let complaints: Array<{ created_at: string }> = []
     try {
       const { data } = await adminClient
@@ -235,7 +250,7 @@ export async function GET(request: NextRequest) {
     } catch {
       // Table might not exist
     }
-    
+
     const complaintsTimelineMap = new Map<string, number>()
     const today = new Date()
     for (let i = 29; i >= 0; i--) {
@@ -244,7 +259,7 @@ export async function GET(request: NextRequest) {
       const dateStr = date.toISOString().split('T')[0]
       complaintsTimelineMap.set(dateStr, 0)
     }
-    
+
     complaints.forEach((c) => {
       const dateStr = new Date(c.created_at).toISOString().split('T')[0]
       if (complaintsTimelineMap.has(dateStr)) {
@@ -254,10 +269,206 @@ export async function GET(request: NextRequest) {
         )
       }
     })
-    
+
     const complaintsTimeline = Array.from(complaintsTimelineMap.entries()).map(
       ([date, count]) => ({ date, count })
     )
+
+    // Extended complaint metrics (management analytics)
+    let complaintMetrics = {
+      openBacklog: 0,
+      overdue: 0,
+      resolvedLast30Days: 0,
+      avgResolutionDays: null as number | null,
+    }
+    let complaintsByPriority: CompanyAdminStats['complaintsByPriority'] = []
+    let complaintsByTemplate: CompanyAdminStats['complaintsByTemplate'] = []
+    let complaintsByProduct: CompanyAdminStats['complaintsByProduct'] = []
+    let complaintsByFacility: CompanyAdminStats['complaintsByFacility'] = []
+    let complaintsAging: CompanyAdminStats['complaintsAging'] = []
+    let resolutionTimeBuckets: CompanyAdminStats['resolutionTimeBuckets'] = []
+    let complaintsTimelineResolved: CompanyAdminStats['complaintsTimelineResolved'] = []
+
+    try {
+      type ComplaintRow = {
+        status: string
+        priority: string | null
+        created_at: string
+        updated_at: string | null
+        deadline: string | null
+        facility_id: string | null
+        product_id: string | null
+        template_id: string | null
+      }
+      const { data: allComplaints } = await adminClient
+        .from('complaints')
+        .select('status, priority, created_at, updated_at, deadline, facility_id, product_id, template_id')
+        .eq('company_id', companyId)
+
+      const complaintRows = (allComplaints || []) as ComplaintRow[]
+
+      const openStatuses = ['pending', 'in_progress']
+      complaintMetrics.openBacklog = complaintRows.filter((c) =>
+        openStatuses.includes((c.status || '').toLowerCase())
+      ).length
+
+      const now = new Date().toISOString()
+      complaintMetrics.overdue = complaintRows.filter((c) => {
+        const status = (c.status || '').toLowerCase()
+        if (['resolved', 'closed'].includes(status)) return false
+        if (!c.deadline) return false
+        return c.deadline < now
+      }).length
+
+      const resolvedClosed = complaintRows.filter((c) =>
+        ['resolved', 'closed'].includes((c.status || '').toLowerCase())
+      )
+      complaintMetrics.resolvedLast30Days = resolvedClosed.filter((c) => {
+        const updated = c.updated_at || c.created_at
+        return updated && updated >= thirtyDaysAgo.toISOString()
+      }).length
+
+      const resolutionDays = resolvedClosed
+        .map((c) => {
+          const created = new Date(c.created_at).getTime()
+          const updated = new Date(c.updated_at || c.created_at).getTime()
+          return (updated - created) / (1000 * 60 * 60 * 24)
+        })
+        .filter((d) => d >= 0)
+      if (resolutionDays.length > 0) {
+        complaintMetrics.avgResolutionDays =
+          Math.round((resolutionDays.reduce((a, b) => a + b, 0) / resolutionDays.length) * 10) / 10
+      }
+
+      const priorityMap = new Map<string, number>()
+      complaintRows.forEach((c) => {
+        const p = (c.priority || '').trim().toLowerCase() || 'unset'
+        priorityMap.set(p, (priorityMap.get(p) || 0) + 1)
+      })
+      const priorityOrder = ['high', 'medium', 'low', 'unset']
+      complaintsByPriority = Array.from(priorityMap.entries())
+        .map(([priority, count]) => ({ priority, count }))
+        .sort((a, b) => priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority))
+
+      const templateIdMap = new Map<string | null, number>()
+      complaintRows.forEach((c) => {
+        const id = c.template_id || null
+        templateIdMap.set(id, (templateIdMap.get(id) || 0) + 1)
+      })
+      const { data: templatesList } = await adminClient
+        .from('complaint_master_templates')
+        .select('id, name')
+        .eq('company_id', companyId)
+      const templateNames = new Map<string, string>()
+      ;(templatesList || []).forEach((t: { id: string; name: string }) => templateNames.set(t.id, t.name || 'Unknown'))
+      complaintsByTemplate = Array.from(templateIdMap.entries())
+        .map(([template_id, count]) => ({
+          template_id,
+          template_name: template_id ? (templateNames.get(template_id) || 'Unknown') : 'No type',
+          count,
+        }))
+        .sort((a, b) => b.count - a.count)
+
+      const productIdMap = new Map<string | null, number>()
+      complaintRows.forEach((c) => {
+        const id = c.product_id || null
+        productIdMap.set(id, (productIdMap.get(id) || 0) + 1)
+      })
+      const { data: productsList } = await adminClient
+        .from('products')
+        .select('id, name')
+        .eq('company_id', companyId)
+      const productNames = new Map<string, string>()
+      ;(productsList || []).forEach((p: { id: string; name: string }) => productNames.set(p.id, p.name || 'Unknown'))
+      complaintsByProduct = Array.from(productIdMap.entries())
+        .map(([product_id, count]) => ({
+          product_id,
+          product_name: product_id ? (productNames.get(product_id) || 'Unknown') : 'No product',
+          count,
+        }))
+        .sort((a, b) => b.count - a.count)
+
+      const facilityIdMap = new Map<string | null, number>()
+      complaintRows.forEach((c) => {
+        const id = c.facility_id || null
+        facilityIdMap.set(id, (facilityIdMap.get(id) || 0) + 1)
+      })
+      const { data: facilitiesList } = await adminClient
+        .from('facilities')
+        .select('id, name')
+        .eq('company_id', companyId)
+      const facilityNames = new Map<string, string>()
+      ;(facilitiesList || []).forEach((f: { id: string; name: string }) => facilityNames.set(f.id, f.name || 'Unknown'))
+      complaintsByFacility = Array.from(facilityIdMap.entries())
+        .map(([facility_id, count]) => ({
+          facility_id,
+          facility_name: facility_id ? (facilityNames.get(facility_id) || 'Unknown') : 'No facility',
+          count,
+        }))
+        .sort((a, b) => b.count - a.count)
+
+      const agingBuckets = [
+        { key: '0-7', label: '0–7 days', min: 0, max: 7 },
+        { key: '7-14', label: '7–14 days', min: 7, max: 14 },
+        { key: '14-30', label: '14–30 days', min: 14, max: 30 },
+        { key: '30+', label: '30+ days', min: 30, max: Infinity },
+      ]
+      const openComplaints = complaintRows.filter((c) =>
+        openStatuses.includes((c.status || '').toLowerCase())
+      )
+      const agingCounts = new Map<string, number>()
+      agingBuckets.forEach((b) => agingCounts.set(b.key, 0))
+      openComplaints.forEach((c) => {
+        const days = (Date.now() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        const b = agingBuckets.find((x) => days >= x.min && days < x.max) || agingBuckets[3]
+        agingCounts.set(b.key, (agingCounts.get(b.key) || 0) + 1)
+      })
+      complaintsAging = agingBuckets.map((b) => ({
+        bucket: b.key,
+        label: b.label,
+        count: agingCounts.get(b.key) || 0,
+      }))
+
+      const resBuckets = [
+        { key: '0-3', label: '0–3 days', min: 0, max: 3 },
+        { key: '3-7', label: '3–7 days', min: 3, max: 7 },
+        { key: '7-14', label: '7–14 days', min: 7, max: 14 },
+        { key: '14-30', label: '14–30 days', min: 14, max: 30 },
+        { key: '30+', label: '30+ days', min: 30, max: Infinity },
+      ]
+      const resCounts = new Map<string, number>()
+      resBuckets.forEach((b) => resCounts.set(b.key, 0))
+      resolvedClosed.forEach((c) => {
+        const created = new Date(c.created_at).getTime()
+        const updated = new Date(c.updated_at || c.created_at).getTime()
+        const days = (updated - created) / (1000 * 60 * 60 * 24)
+        const b = resBuckets.find((x) => days >= x.min && days < x.max) || resBuckets[4]
+        resCounts.set(b.key, (resCounts.get(b.key) || 0) + 1)
+      })
+      resolutionTimeBuckets = resBuckets.map((b) => ({
+        bucket: b.key,
+        label: b.label,
+        count: resCounts.get(b.key) || 0,
+      }))
+
+      const resolvedTimelineMap = new Map<string, number>()
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today)
+        d.setDate(d.getDate() - i)
+        resolvedTimelineMap.set(d.toISOString().split('T')[0], 0)
+      }
+      resolvedClosed.forEach((c) => {
+        const updated = c.updated_at || c.created_at
+        if (!updated || updated < thirtyDaysAgo.toISOString()) return
+        const dateStr = new Date(updated).toISOString().split('T')[0]
+        if (resolvedTimelineMap.has(dateStr)) {
+          resolvedTimelineMap.set(dateStr, (resolvedTimelineMap.get(dateStr) || 0) + 1)
+        }
+      })
+      complaintsTimelineResolved = Array.from(resolvedTimelineMap.entries()).map(([date, count]) => ({ date, count }))
+    } catch (e) {
+      console.error('Extended complaint metrics error:', e)
+    }
     
     // Users timeline - empty since users table doesn't have created_at
     // To enable this, add a created_at column to the users table
@@ -286,6 +497,14 @@ export async function GET(request: NextRequest) {
       usersTimeline,
       recentComplaints,
       recentUsers: recentUsersData || [],
+      complaintMetrics,
+      complaintsByPriority,
+      complaintsByTemplate,
+      complaintsByProduct,
+      complaintsByFacility,
+      complaintsAging,
+      resolutionTimeBuckets,
+      complaintsTimelineResolved,
     }
     
     return NextResponse.json(stats)

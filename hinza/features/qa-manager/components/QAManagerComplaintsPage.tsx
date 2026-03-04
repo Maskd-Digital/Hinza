@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import { Complaint } from '@/types/complaint'
 import { Permission } from '@/types/auth'
 import { hasPermission } from '@/lib/auth/permissions'
 import { formatFacilityName } from '@/lib/utils'
-import ComplaintAdditionalDetails from '@/components/ComplaintAdditionalDetails'
 
 interface QAManagerComplaintsPageProps {
   companyId: string
@@ -31,13 +31,9 @@ export default function QAManagerComplaintsPage({
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null)
   const [assigning, setAssigning] = useState(false)
-  const [verifying, setVerifying] = useState<string | null>(null)
-  const [markingDone, setMarkingDone] = useState(false)
 
   const canAssign = hasPermission(userPermissions, 'complaints:assign') || hasPermission(userPermissions, 'complaints:resolve')
-  const canResolve = hasPermission(userPermissions, 'complaints:resolve')
 
   useEffect(() => {
     fetchComplaints()
@@ -92,63 +88,10 @@ export default function QAManagerComplaintsPage({
         throw new Error(data.error || 'Failed to assign')
       }
       await fetchComplaints()
-      if (selectedComplaint?.id === complaintId) {
-        setSelectedComplaint(data as Complaint)
-      }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to assign')
     } finally {
       setAssigning(false)
-    }
-  }
-
-  const handleVerifyDocument = async (
-    complaintId: string,
-    doc: 'capa' | 'sla'
-  ) => {
-    setVerifying(`${complaintId}-${doc}`)
-    try {
-      const body: Record<string, string | null> = {}
-      const now = new Date().toISOString()
-      if (doc === 'capa') {
-        body.capa_verified_at = now
-      } else {
-        body.sla_verified_at = now
-      }
-      const res = await fetch(`/api/complaints/${complaintId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      if (!res.ok) throw new Error('Failed to verify')
-      await fetchComplaints()
-      const updated = await res.json()
-      if (selectedComplaint?.id === complaintId) setSelectedComplaint(updated)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to verify')
-    } finally {
-      setVerifying(null)
-    }
-  }
-
-  const handleMarkDone = async (complaintId: string) => {
-    setMarkingDone(true)
-    try {
-      const res = await fetch(`/api/complaints/${complaintId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'closed' }),
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to close')
-      }
-      await fetchComplaints()
-      setSelectedComplaint(null)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to mark as done')
-    } finally {
-      setMarkingDone(false)
     }
   }
 
@@ -332,12 +275,12 @@ export default function QAManagerComplaintsPage({
                       {formatDate(c.created_at)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right">
-                      <button
-                        onClick={() => setSelectedComplaint(c)}
+                      <Link
+                        href={`/qa-manager/${companyId}/complaints/${c.id}`}
                         className="text-sm font-medium text-[#0108B8] hover:text-[#0108B8]/90"
                       >
                         View / Manage
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -347,199 +290,6 @@ export default function QAManagerComplaintsPage({
         </div>
       )}
 
-      {/* Complaint detail modal */}
-      {selectedComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
-            <div className="sticky top-0 flex items-center justify-between bg-white px-6 py-4 shadow-sm">
-              <h2 className="text-lg font-semibold" style={{ color: '#000' }}>
-                {selectedComplaint.title}
-              </h2>
-              <button
-                onClick={() => setSelectedComplaint(null)}
-                className="rounded-lg p-1 text-[#081636] hover:bg-gray-100 hover:text-gray-600"
-              >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-6 p-6" style={{ color: '#000' }}>
-              {/* Complaint type (top), Product, Location, then Description */}
-              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Complaint type</h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
-                  {selectedComplaint.template?.name ?? selectedComplaint.complaint_master_templates?.name ?? '—'}
-                </p>
-              </div>
-              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Product</h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
-                  {selectedComplaint.products?.name ?? '—'}
-                </p>
-              </div>
-              <div className="rounded-lg bg-[#EFF4FF] p-4" style={{ boxShadow: '0 2px 4px rgba(1, 8, 184, 0.1)', color: '#000' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#000' }}>Location</h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: '#000' }}>
-                  {formatFacilityName(selectedComplaint.facilities)}
-                </p>
-              </div>
-              <ComplaintAdditionalDetails
-                description={selectedComplaint.description}
-                customFields={selectedComplaint.custom_fields}
-              />
-
-              <div className="flex flex-wrap gap-4 text-sm" style={{ color: '#000' }}>
-                <span>
-                  <strong>Status:</strong>{' '}
-                  <span className={getStatusColor(selectedComplaint.status)}>
-                    {selectedComplaint.status?.replace(/_/g, ' ')}
-                  </span>
-                </span>
-                <span>
-                  <strong>Priority:</strong>{' '}
-                  {selectedComplaint.priority ?? '—'}
-                </span>
-                <span>
-                  <strong>Created:</strong>{' '}
-                  {formatDate(selectedComplaint.created_at)}
-                </span>
-              </div>
-
-              {/* Assign / Reassign to QA Executive - always show for QA Manager (page is role-gated) */}
-              {selectedComplaint.status?.toLowerCase() !== 'closed' && (
-                <div className="rounded-lg bg-amber-50 p-4" style={{ color: '#000', boxShadow: '0 2px 4px rgba(245, 158, 11, 0.15)' }}>
-                  <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>
-                    {selectedComplaint.assigned_to_id ? 'Reassign' : 'Assign'} to QA Executive
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <select
-                      value={selectedComplaint.assigned_to_id ?? ''}
-                      onChange={(e) =>
-                        handleAssign(selectedComplaint.id, e.target.value)
-                      }
-                      disabled={assigning}
-                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-50"
-                      style={{ color: '#000' }}
-                    >
-                      <option value="">Unassigned</option>
-                      {qaExecutives.length > 0 ? (
-                        qaExecutives.map((u) => (
-                          <option key={u.id} value={u.id}>
-                            {u.full_name || u.email || u.id}
-                          </option>
-                        ))
-                      ) : (
-                        users.map((u) => (
-                          <option key={u.id} value={u.id}>
-                            {u.full_name || u.email || u.id}
-                            {u.roles?.length > 0 && ` (${u.roles.map((r) => r.name).join(', ')})`}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                    {assigning && (
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" />
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div style={{ color: '#000' }}>
-                <h3 className="mb-2 text-sm font-medium" style={{ color: '#000' }}>
-                  Documents (CAPA / SLA)
-                </h3>
-                <div className="space-y-3 rounded-lg bg-gray-50 p-4" style={{ boxShadow: '0 1px 3px rgba(15, 23, 42, 0.12)' }}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium" style={{ color: '#000' }}>CAPA</p>
-                      {selectedComplaint.capa_document_url ? (
-                        <a
-                          href={selectedComplaint.capa_document_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-[#0108B8] hover:underline"
-                        >
-                          View document
-                        </a>
-                      ) : (
-                        <p className="text-sm" style={{ color: '#000' }}>No document linked</p>
-                      )}
-                    </div>
-                    {selectedComplaint.capa_document_url && (
-                      <div>
-                        {selectedComplaint.capa_verified_at ? (
-                          <span className="text-sm text-green-600">Verified</span>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              handleVerifyDocument(selectedComplaint.id, 'capa')
-                            }
-                            disabled={verifying === `${selectedComplaint.id}-capa`}
-                            className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
-                          >
-                            {verifying === `${selectedComplaint.id}-capa`
-                              ? 'Verifying...'
-                              : 'Verify'}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium" style={{ color: '#000' }}>SLA</p>
-                      {selectedComplaint.sla_document_url ? (
-                        <a
-                          href={selectedComplaint.sla_document_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-[#0108B8] hover:underline"
-                        >
-                          View document
-                        </a>
-                      ) : (
-                        <p className="text-sm" style={{ color: '#000' }}>No document linked</p>
-                      )}
-                    </div>
-                    {selectedComplaint.sla_document_url && (
-                      <div>
-                        {selectedComplaint.sla_verified_at ? (
-                          <span className="text-sm text-green-600">Verified</span>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              handleVerifyDocument(selectedComplaint.id, 'sla')
-                            }
-                            disabled={verifying === `${selectedComplaint.id}-sla`}
-                            className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
-                          >
-                            {verifying === `${selectedComplaint.id}-sla`
-                              ? 'Verifying...'
-                              : 'Verify'}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {canResolve && selectedComplaint.status?.toLowerCase() !== 'closed' && (
-                <div className="border-t border-gray-200 pt-4">
-                  <button
-                    onClick={() => handleMarkDone(selectedComplaint.id)}
-                    disabled={markingDone}
-                    className="w-full rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-                  >
-                    {markingDone ? 'Updating...' : 'Mark as done (close complaint)'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

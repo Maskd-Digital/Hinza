@@ -21,9 +21,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const adminClient = createAdminClient()
 
-    const { data, error } = await adminClient
+    const { data: raw, error } = await adminClient
       .from('complaints')
-      .select('*')
+      .select('*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name)')
       .eq('id', id)
       .single()
 
@@ -40,7 +40,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    return NextResponse.json(data)
+    const data = raw as Record<string, unknown>
+    const templateObj = Array.isArray(data.template) ? data.template[0] ?? null : data.template ?? null
+    return NextResponse.json({ ...data, template: templateObj, complaint_master_templates: templateObj })
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
@@ -72,12 +74,24 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (body.priority !== undefined) update.priority = body.priority
     if (body.assigned_to_id !== undefined) update.assigned_to_id = body.assigned_to_id
     if (body.deadline !== undefined) update.deadline = body.deadline
-    if (body.submitted_for_verification_at !== undefined) update.submitted_for_verification_at = body.submitted_for_verification_at
+    if (body.submitted_for_verification_at !== undefined) {
+      update.submitted_for_verification_at = body.submitted_for_verification_at
+      if (body.submitted_for_verification_at) {
+        update.review_status = 'pending_review'
+        update.reviewed_at = null
+        update.reviewed_by = null
+        update.rejection_reason = null
+      }
+    }
     if (body.capa_document_url !== undefined) update.capa_document_url = body.capa_document_url
     if (body.sla_document_url !== undefined) update.sla_document_url = body.sla_document_url
     if (body.capa_verified_at !== undefined) update.capa_verified_at = body.capa_verified_at
     if (body.sla_verified_at !== undefined) update.sla_verified_at = body.sla_verified_at
     if (body.verified_by !== undefined) update.verified_by = body.verified_by
+    if (body.review_status !== undefined) update.review_status = body.review_status
+    if (body.reviewed_at !== undefined) update.reviewed_at = body.reviewed_at
+    if (body.reviewed_by !== undefined) update.reviewed_by = body.reviewed_by
+    if (body.rejection_reason !== undefined) update.rejection_reason = body.rejection_reason
 
     if (Object.keys(update).length === 0) {
       return NextResponse.json(
@@ -104,6 +118,39 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         { error: `Failed to update complaint: ${error.message}` },
         { status: 500 }
       )
+    }
+
+    if (body.submitted_for_verification_at !== undefined && data) {
+      const companyId = data.company_id as string
+      const complaintTitle = (data.title as string) || 'Complaint'
+      const { data: qaManagerRoles } = await adminClient
+        .from('roles')
+        .select('id')
+        .eq('company_id', companyId)
+        .ilike('name', 'QA Manager')
+
+      if (qaManagerRoles?.length) {
+        const roleIds = qaManagerRoles.map((r) => r.id)
+        const { data: userRoleRows } = await adminClient
+          .from('user_roles')
+          .select('user_id')
+          .in('role_id', roleIds)
+
+        const recipientIds = [...new Set((userRoleRows || []).map((r) => r.user_id))]
+        if (recipientIds.length > 0) {
+          await adminClient.from('notifications').insert(
+            recipientIds.map((userId) => ({
+              user_id: userId,
+              company_id: companyId,
+              type: 'complaint_sent_for_review',
+              related_entity_type: 'complaint',
+              related_entity_id: id,
+              title: 'Complaint sent for review',
+              body: `"${complaintTitle}" has been sent for your verification.`,
+            }))
+          )
+        }
+      }
     }
 
     return NextResponse.json(data)
