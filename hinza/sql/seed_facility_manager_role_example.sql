@@ -1,0 +1,23 @@
+-- ============================================================================
+-- Example: Facility Manager role for one company (run per company as needed)
+-- ============================================================================
+-- Prerequisites: run facility_equipment_and_fm_assignments.sql and seed_permissions.
+--
+-- 1) Create role
+-- INSERT INTO public.roles (company_id, name)
+-- VALUES ('YOUR_COMPANY_UUID'::uuid, 'Facility Manager')
+-- RETURNING id;
+--
+-- 2) Attach permissions (adjust list if needed)
+-- INSERT INTO public.role_permissions (role_id, permission_id)
+-- SELECT 'ROLE_UUID_FROM_STEP_1'::uuid, p.id
+-- FROM public.permissions p
+-- WHERE p.name IN (
+--   'facility_equipment:read',
+--   'facility_complaints:read',
+--   'facility_complaints:escalate',
+--   'facilities:read'
+-- );
+--
+-- 3) Assign user to role (user_roles)
+-- 4) Assign facilities (facility_manager_assignments) for that user

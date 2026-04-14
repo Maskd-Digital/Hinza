@@ -51,6 +51,10 @@ export default async function ComplaintsPage({ params }: ComplaintsPageProps) {
         companyId={companyId}
         canCreateComplaints={hasPermission(user.permissions, 'complaints:create')}
         canAssignComplaints={hasPermission(user.permissions, 'complaints:assign')}
+        canCreateFacilityEquipmentComplaint={
+          hasPermission(user.permissions, 'facility_complaints:create') ||
+          hasPermission(user.permissions, 'complaints:create')
+        }
       />
     </CompanyAdminLayout>
   )

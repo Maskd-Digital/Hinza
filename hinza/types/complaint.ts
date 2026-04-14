@@ -28,6 +28,15 @@ export interface Complaint {
   products?: { name: string } | null
   /** Joined from facilities table (address via facility_id) */
   facilities?: FacilityLocation | null
+  /** Facility machinery / equipment (joined via equipment_id) */
+  facility_equipment?: {
+    name: string
+    asset_tag?: string | null
+    model?: string | null
+  } | null
+  equipment_id?: string | null
+  facility_escalated_at?: string | null
+  facility_escalated_by?: string | null
   /** Template-defined fields stored as JSON: object of field name -> value, or array of { field_name, value } */
   custom_fields?: Record<string, unknown> | Array<{ field_name?: string; name?: string; value?: unknown }> | null
   /** Hierarchy: parent complaint id */

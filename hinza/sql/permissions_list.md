@@ -63,7 +63,17 @@ This document lists all permissions created for the Hinza Complaint Management S
 ### Dashboard (1 permission)
 - `dashboard:view` - View dashboard
 
-## Total: 37 Permissions
+### Facility equipment & facility complaints (8 permissions)
+- `facility_equipment:read` - View facility equipment registry
+- `facility_equipment:create` - Create facility equipment records
+- `facility_equipment:update` - Update facility equipment records
+- `facility_equipment:delete` - Delete facility equipment records
+- `facility_managers:assign` - Assign facility managers to facilities
+- `facility_complaints:create` - Create facility equipment complaints
+- `facility_complaints:read` - View facility equipment complaints for assigned facilities
+- `facility_complaints:escalate` - Escalate facility equipment complaints to QA
+
+## Total: 45 Permissions
 
 ## Superadmin Role
 

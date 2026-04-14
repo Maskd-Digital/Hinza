@@ -34,7 +34,7 @@ export default function QAExecutiveComplaintsPage({
     setError(null)
     try {
       const res = await fetch(
-        `/api/complaints?company_id=${companyId}&assigned_to_id=${userId}`
+        `/api/complaints?company_id=${companyId}&assigned_to_id=${userId}&qa_workspace=1`
       )
       if (!res.ok) throw new Error('Failed to fetch complaints')
       const data = await res.json()

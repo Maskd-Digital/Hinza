@@ -29,6 +29,8 @@ export default function CompanyAdminSidebar({
   const canViewTemplates = hasPermission(permissions, 'templates:read')
   const canViewComplaints = hasPermission(permissions, 'complaints:read')
   const canViewFacilities = hasPermission(permissions, 'facilities:read')
+  const canViewFacilityEquipment = hasPermission(permissions, 'facility_equipment:read')
+  const canAssignFacilityManagers = hasPermission(permissions, 'facility_managers:assign')
   const canViewReports = hasPermission(permissions, 'reports:read')
 
   const handleLogout = async () => {
@@ -288,11 +290,19 @@ export default function CompanyAdminSidebar({
               <Link
                 href={`${basePath}/facilities`}
                 className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
-                  pathname.includes('/facilities')
+                  pathname.includes('/facilities') &&
+                  !pathname.includes('/facility-equipment') &&
+                  !pathname.includes('/facility-managers')
                     ? 'text-[#081636]'
                     : 'text-white hover:bg-white/10 hover:text-white'
                 }`}
-                style={pathname.includes('/facilities') ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' } : undefined}
+                style={
+                  pathname.includes('/facilities') &&
+                  !pathname.includes('/facility-equipment') &&
+                  !pathname.includes('/facility-managers')
+                    ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }
+                    : undefined
+                }
               >
                 <svg
                   className="h-5 w-5"
@@ -308,6 +318,73 @@ export default function CompanyAdminSidebar({
                   />
                 </svg>
                 View Facilities
+              </Link>
+            </div>
+          )}
+
+          {canViewFacilityEquipment && (
+            <div>
+              <Link
+                href={`${basePath}/facility-equipment`}
+                className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
+                  pathname.includes('/facility-equipment')
+                    ? 'text-[#081636]'
+                    : 'text-white hover:bg-white/10 hover:text-white'
+                }`}
+                style={
+                  pathname.includes('/facility-equipment')
+                    ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }
+                    : undefined
+                }
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Facility equipment
+              </Link>
+            </div>
+          )}
+
+          {canAssignFacilityManagers && (
+            <div>
+              <Link
+                href={`${basePath}/facility-managers`}
+                className={`flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium pl-6 ${
+                  pathname.includes('/facility-managers')
+                    ? 'text-[#081636]'
+                    : 'text-white hover:bg-white/10 hover:text-white'
+                }`}
+                style={
+                  pathname.includes('/facility-managers')
+                    ? { backgroundColor: '#EFF4FF', boxShadow: 'inset 0 2px 4px rgba(1, 8, 184, 0.25)' }
+                    : undefined
+                }
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+                Facility managers
               </Link>
             </div>
           )}

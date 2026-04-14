@@ -43,6 +43,14 @@ export type PermissionName =
   | 'reports:read'
   | 'audit:read'
   | 'dashboard:view'
+  | 'facility_equipment:read'
+  | 'facility_equipment:create'
+  | 'facility_equipment:update'
+  | 'facility_equipment:delete'
+  | 'facility_managers:assign'
+  | 'facility_complaints:create'
+  | 'facility_complaints:read'
+  | 'facility_complaints:escalate'
 
 export function hasPermission(
   userPermissions: Permission[],

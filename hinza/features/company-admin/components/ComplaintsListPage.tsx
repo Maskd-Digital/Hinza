@@ -16,12 +16,14 @@ interface ComplaintsListPageProps {
   companyId: string
   canCreateComplaints: boolean
   canAssignComplaints?: boolean
+  canCreateFacilityEquipmentComplaint?: boolean
 }
 
 export default function ComplaintsListPage({
   companyId,
   canCreateComplaints,
   canAssignComplaints = false,
+  canCreateFacilityEquipmentComplaint = false,
 }: ComplaintsListPageProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([])
   const [loading, setLoading] = useState(true)
@@ -186,14 +188,27 @@ export default function ComplaintsListPage({
             Track and manage customer complaints
           </p>
         </div>
-        {canCreateComplaints && (
-          <button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90" style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Complaint
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {canCreateComplaints && (
+            <button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90" style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New Complaint
+            </button>
+          )}
+          {canCreateFacilityEquipmentComplaint && (
+            <Link
+              href={`/company-admin/${companyId}/complaints/new-equipment`}
+              className="inline-flex items-center gap-2 rounded-lg border border-teal-700 bg-white px-4 py-2 text-sm font-medium text-teal-800 hover:bg-teal-50"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New equipment complaint
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Stats Cards */}

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import AddProductModal from '@/features/companies/components/AddProductModal'
+import BulkAddProductsModal from './BulkAddProductsModal'
 
 interface Product {
   id: string
@@ -29,6 +31,8 @@ export default function ProductsListPage({
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const [viewMode, setViewMode] = useState<'tree' | 'list'>('tree')
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -212,12 +216,34 @@ export default function ProductsListPage({
           </p>
         </div>
         {canCreateProducts && (
-          <button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90" style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}>
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add Product
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Product
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsBulkModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-[#081636] hover:bg-gray-50"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Bulk upload
+            </button>
+          </div>
         )}
       </div>
 
@@ -490,6 +516,29 @@ export default function ProductsListPage({
       <div className="text-sm text-[#081636]">
         Showing {searchQuery ? filteredProducts.length : products.length} products
       </div>
+
+      {canCreateProducts && (
+        <>
+          <AddProductModal
+            isOpen={isAddModalOpen}
+            onClose={() => {
+              setIsAddModalOpen(false)
+              fetchProducts()
+            }}
+            companyId={companyId}
+          />
+          <BulkAddProductsModal
+            isOpen={isBulkModalOpen}
+            onClose={() => setIsBulkModalOpen(false)}
+            companyId={companyId}
+            onSuccess={() => {
+              setIsBulkModalOpen(false)
+              fetchProducts()
+            }}
+          />
+        </>
+      )}
     </div>
   )
 }
+

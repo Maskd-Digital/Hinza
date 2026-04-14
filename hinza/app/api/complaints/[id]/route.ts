@@ -1,38 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
+import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
+import { isQAManager } from '@/lib/auth/qa-manager'
+import { isQAExecutive } from '@/lib/auth/qa-executive'
+import { isFacilityManager } from '@/lib/auth/facility-manager'
+import { getAssignedFacilityIdsForUser } from '@/lib/api/facility-manager-scope'
 import { UpdateComplaintInput } from '@/types/complaint'
+import { insertNotificationsForQaManagers } from '@/lib/notify/qa-managers'
 
 interface RouteParams {
   params: Promise<{ id: string }>
 }
 
+const COMPLAINT_DETAIL_SELECT =
+  '*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name), facility_equipment(name, asset_tag, model)'
+
+const COMPLAINT_DETAIL_SELECT_FALLBACK =
+  '*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name)'
+
+function normalizeTemplateRow(raw: Record<string, unknown>) {
+  const templateObj = Array.isArray(raw.template)
+    ? raw.template[0] ?? null
+    : raw.template ?? null
+  return { ...raw, template: templateObj, complaint_master_templates: templateObj }
+}
+
+function isPreFacilityEscalation(c: {
+  equipment_id?: string | null
+  facility_escalated_at?: string | null
+}): boolean {
+  return Boolean(c.equipment_id && !c.facility_escalated_at)
+}
+
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getUserWithRoles()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const adminClient = createAdminClient()
+    let raw: Record<string, unknown> | null = null
+    let error: { code?: string; message?: string } | null = null
 
-    const { data: raw, error } = await adminClient
+    const first = await adminClient
       .from('complaints')
-      .select('*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name)')
+      .select(COMPLAINT_DETAIL_SELECT)
       .eq('id', id)
       .single()
 
+    if (first.error) {
+      const msg = first.error.message || ''
+      if (msg.includes('facility_equipment') || msg.includes('schema cache')) {
+        const second = await adminClient
+          .from('complaints')
+          .select(COMPLAINT_DETAIL_SELECT_FALLBACK)
+          .eq('id', id)
+          .single()
+        raw = second.data as Record<string, unknown> | null
+        error = second.error
+      } else {
+        raw = first.data as Record<string, unknown> | null
+        error = first.error
+      }
+    } else {
+      raw = first.data as Record<string, unknown> | null
+      error = first.error
+    }
+
     if (error) {
       if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'Complaint not found' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'Complaint not found' }, { status: 404 })
       }
       return NextResponse.json(
         { error: `Failed to fetch complaint: ${error.message}` },
@@ -40,9 +80,41 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    const data = raw as Record<string, unknown>
-    const templateObj = Array.isArray(data.template) ? data.template[0] ?? null : data.template ?? null
-    return NextResponse.json({ ...data, template: templateObj, complaint_master_templates: templateObj })
+    const complaint = raw as {
+      company_id: string
+      equipment_id?: string | null
+      facility_id?: string | null
+      facility_escalated_at?: string | null
+    }
+
+    if (!isSystemAdmin(user.company_id) && user.company_id !== complaint.company_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (isPreFacilityEscalation(complaint) && (isQAManager(user) || isQAExecutive(user))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (!hasPermission(user.permissions, 'complaints:read')) {
+      if (
+        !complaint.equipment_id ||
+        !isFacilityManager(user) ||
+        !hasPermission(user.permissions, 'facility_complaints:read')
+      ) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+      const ids = await getAssignedFacilityIdsForUser(
+        adminClient,
+        user.id,
+        user.company_id
+      )
+      const fid = complaint.facility_id
+      if (!fid || !ids.includes(fid)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
+
+    return NextResponse.json(normalizeTemplateRow(raw!))
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
@@ -54,11 +126,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getUserWithRoles()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -66,7 +134,29 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const body: UpdateComplaintInput = await request.json()
     const adminClient = createAdminClient()
 
-    // Build update object (only include provided fields)
+    const { data: existing, error: exErr } = await adminClient
+      .from('complaints')
+      .select(
+        'id, company_id, equipment_id, facility_id, facility_escalated_at, assigned_to_id'
+      )
+      .eq('id', id)
+      .single()
+
+    if (exErr || !existing) {
+      return NextResponse.json({ error: 'Complaint not found' }, { status: 404 })
+    }
+
+    if (!isSystemAdmin(user.company_id) && user.company_id !== existing.company_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (
+      isPreFacilityEscalation(existing as { equipment_id?: string | null; facility_escalated_at?: string | null }) &&
+      (isQAManager(user) || isQAExecutive(user))
+    ) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const update: Record<string, unknown> = {}
     if (body.title !== undefined) update.title = body.title
     if (body.description !== undefined) update.description = body.description
@@ -93,11 +183,59 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (body.reviewed_by !== undefined) update.reviewed_by = body.reviewed_by
     if (body.rejection_reason !== undefined) update.rejection_reason = body.rejection_reason
 
-    if (Object.keys(update).length === 0) {
-      return NextResponse.json(
-        { error: 'No valid fields to update' },
-        { status: 400 }
+    const fmRestricted =
+      isFacilityManager(user) &&
+      !hasPermission(user.permissions, 'complaints:update') &&
+      hasPermission(user.permissions, 'facility_complaints:read')
+
+    if (fmRestricted) {
+      if (!existing.equipment_id) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+      const ids = await getAssignedFacilityIdsForUser(
+        adminClient,
+        user.id,
+        user.company_id
       )
+      const fid = existing.facility_id as string | null
+      if (!fid || !ids.includes(fid)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+      const allowed = new Set(['title', 'description', 'priority', 'status'])
+      for (const key of Object.keys(update)) {
+        if (!allowed.has(key)) {
+          delete update[key]
+        }
+      }
+    } else if (isQAExecutive(user) && existing.assigned_to_id === user.id) {
+      const allowed = new Set([
+        'description',
+        'priority',
+        'status',
+        'deadline',
+        'submitted_for_verification_at',
+        'capa_document_url',
+        'sla_document_url',
+        'capa_verified_at',
+        'sla_verified_at',
+        'verified_by',
+      ])
+      for (const key of Object.keys(update)) {
+        if (!allowed.has(key)) {
+          delete update[key]
+        }
+      }
+    } else if (
+      isQAManager(user) ||
+      hasPermission(user.permissions, 'complaints:update')
+    ) {
+      // full update object as built
+    } else {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (Object.keys(update).length === 0) {
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
 
     const { data, error } = await adminClient
@@ -109,10 +247,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'Complaint not found' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'Complaint not found' }, { status: 404 })
       }
       return NextResponse.json(
         { error: `Failed to update complaint: ${error.message}` },
@@ -123,34 +258,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (body.submitted_for_verification_at !== undefined && data) {
       const companyId = data.company_id as string
       const complaintTitle = (data.title as string) || 'Complaint'
-      const { data: qaManagerRoles } = await adminClient
-        .from('roles')
-        .select('id')
-        .eq('company_id', companyId)
-        .ilike('name', 'QA Manager')
-
-      if (qaManagerRoles?.length) {
-        const roleIds = qaManagerRoles.map((r) => r.id)
-        const { data: userRoleRows } = await adminClient
-          .from('user_roles')
-          .select('user_id')
-          .in('role_id', roleIds)
-
-        const recipientIds = [...new Set((userRoleRows || []).map((r) => r.user_id))]
-        if (recipientIds.length > 0) {
-          await adminClient.from('notifications').insert(
-            recipientIds.map((userId) => ({
-              user_id: userId,
-              company_id: companyId,
-              type: 'complaint_sent_for_review',
-              related_entity_type: 'complaint',
-              related_entity_id: id,
-              title: 'Complaint sent for review',
-              body: `"${complaintTitle}" has been sent for your verification.`,
-            }))
-          )
-        }
-      }
+      await insertNotificationsForQaManagers(adminClient, companyId, id, {
+        type: 'complaint_sent_for_review',
+        title: 'Complaint sent for review',
+        body: `"${complaintTitle}" has been sent for your verification.`,
+      })
     }
 
     return NextResponse.json(data)

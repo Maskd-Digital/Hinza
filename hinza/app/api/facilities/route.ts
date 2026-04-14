@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
-import { hasPermission } from '@/lib/auth/permissions'
+import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
+import { isFacilityManager } from '@/lib/auth/facility-manager'
+import { getAssignedFacilityIdsForUser } from '@/lib/api/facility-manager-scope'
 import { CreateFacilityInput } from '@/types/facility'
 
 // GET /api/facilities - List facilities (optionally filtered by company_id)
@@ -11,16 +13,34 @@ export async function GET(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    if (!hasPermission(user.permissions, 'facilities:read')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
 
     const searchParams = request.nextUrl.searchParams
     const companyId = searchParams.get('company_id')
 
+    const canFacilitiesRead = hasPermission(user.permissions, 'facilities:read')
+    const fmFacilityRead =
+      isFacilityManager(user) &&
+      hasPermission(user.permissions, 'facility_complaints:read') &&
+      !canFacilitiesRead
+
+    if (!canFacilitiesRead && !fmFacilityRead) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (fmFacilityRead && !companyId) {
+      return NextResponse.json(
+        { error: 'company_id is required for facility manager access' },
+        { status: 400 }
+      )
+    }
+
+    if (fmFacilityRead && !isSystemAdmin(user.company_id) && user.company_id !== companyId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     // Use admin client to bypass RLS for superadmin access
     const adminClient = createAdminClient()
-    
+
     let query = adminClient
       .from('facilities')
       .select('*')
@@ -28,6 +48,14 @@ export async function GET(request: NextRequest) {
 
     if (companyId) {
       query = query.eq('company_id', companyId)
+    }
+
+    if (fmFacilityRead && companyId) {
+      const ids = await getAssignedFacilityIdsForUser(adminClient, user.id, companyId)
+      if (ids.length === 0) {
+        return NextResponse.json([])
+      }
+      query = query.in('id', ids)
     }
 
     const { data, error } = await query

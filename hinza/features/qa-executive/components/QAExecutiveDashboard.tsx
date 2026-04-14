@@ -28,7 +28,7 @@ export default function QAExecutiveDashboard({
 
   useEffect(() => {
     fetch(
-      `/api/complaints?company_id=${companyId}&assigned_to_id=${userId}`
+      `/api/complaints?company_id=${companyId}&assigned_to_id=${userId}&qa_workspace=1`
     )
       .then((res) => res.json())
       .then((data) => setComplaints(Array.isArray(data) ? data : []))

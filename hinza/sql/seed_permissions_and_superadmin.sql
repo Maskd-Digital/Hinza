@@ -86,6 +86,18 @@ INSERT INTO public.permissions (name, description) VALUES
 ('dashboard:view', 'View dashboard')
 ON CONFLICT (name) DO NOTHING;
 
+-- Facility equipment & facility manager workflow
+INSERT INTO public.permissions (name, description) VALUES
+('facility_equipment:read', 'View facility equipment registry'),
+('facility_equipment:create', 'Create facility equipment records'),
+('facility_equipment:update', 'Update facility equipment records'),
+('facility_equipment:delete', 'Delete facility equipment records'),
+('facility_managers:assign', 'Assign facility managers to facilities'),
+('facility_complaints:create', 'Create facility equipment complaints'),
+('facility_complaints:read', 'View facility equipment complaints for assigned facilities'),
+('facility_complaints:escalate', 'Escalate facility equipment complaints to QA')
+ON CONFLICT (name) DO NOTHING;
+
 -- ============================================
 -- Step 2: Create System Company (if needed)
 -- ============================================
@@ -181,4 +193,4 @@ ORDER BY p.name;
 -- - Audit: 1 permission
 -- - Roles: 4 permissions
 -- - Dashboard: 1 permission
--- Total: 37 permissions
+-- Total: 45 permissions (37 + 8 facility equipment / facility complaint permissions)

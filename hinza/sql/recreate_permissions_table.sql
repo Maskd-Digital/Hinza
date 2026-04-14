@@ -83,6 +83,17 @@ INSERT INTO public.permissions (name, description) VALUES
 INSERT INTO public.permissions (name, description) VALUES
 ('dashboard:view', 'View dashboard');
 
+-- Facility equipment & facility manager workflow
+INSERT INTO public.permissions (name, description) VALUES
+('facility_equipment:read', 'View facility equipment registry'),
+('facility_equipment:create', 'Create facility equipment records'),
+('facility_equipment:update', 'Update facility equipment records'),
+('facility_equipment:delete', 'Delete facility equipment records'),
+('facility_managers:assign', 'Assign facility managers to facilities'),
+('facility_complaints:create', 'Create facility equipment complaints'),
+('facility_complaints:read', 'View facility equipment complaints for assigned facilities'),
+('facility_complaints:escalate', 'Escalate facility equipment complaints to QA');
+
 -- Step 4: Recreate role_permissions table
 CREATE TABLE public.role_permissions (
   role_id UUID NOT NULL,
@@ -100,4 +111,4 @@ SELECT
 FROM public.permissions
 ORDER BY name;
 
--- Expected: 37 permissions total
+-- Expected: 45 permissions total

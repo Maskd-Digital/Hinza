@@ -44,7 +44,7 @@ export default function QAManagerComplaintsPage({
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/complaints?company_id=${companyId}`)
+      const res = await fetch(`/api/complaints?company_id=${companyId}&qa_workspace=1`)
       if (!res.ok) throw new Error('Failed to fetch complaints')
       const data = await res.json()
       setComplaints(Array.isArray(data) ? data : [])
@@ -231,6 +231,9 @@ export default function QAManagerComplaintsPage({
                     Complaint
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
@@ -258,6 +261,15 @@ export default function QAManagerComplaintsPage({
                           </p>
                         )}
                       </div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      {c.equipment_id ? (
+                        <span className="inline-flex rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-medium text-teal-800">
+                          Equipment
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-500">Product</span>
+                      )}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
                       <span

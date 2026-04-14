@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Complaint, ComplaintComment, ComplaintDocument } from '@/types/complaint'
 import type { Permission } from '@/types/auth'
+import { hasPermission } from '@/lib/auth/permissions'
 import ComplaintAdditionalDetails from '@/components/ComplaintAdditionalDetails'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '') ?? ''
@@ -38,7 +39,11 @@ function formatFacilityName(facilities: Complaint['facilities']): string {
   return parts.length ? parts.join(', ') : facilities.name ?? '—'
 }
 
-export type ComplaintDetailUserRole = 'company_admin' | 'qa_executive' | 'qa_manager'
+export type ComplaintDetailUserRole =
+  | 'company_admin'
+  | 'qa_executive'
+  | 'qa_manager'
+  | 'facility_manager'
 
 interface ComplaintDetailPageProps {
   complaintId: string
@@ -73,6 +78,7 @@ export default function ComplaintDetailPage({
   const [rejecting, setRejecting] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
   const [showRejectModal, setShowRejectModal] = useState(false)
+  const [escalating, setEscalating] = useState(false)
   const fileInputCapa = useRef<HTMLInputElement>(null)
   const fileInputSla = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -214,6 +220,25 @@ export default function ComplaintDetailPage({
     }
   }
 
+  const handleFacilityEscalate = async () => {
+    if (!complaint || !confirm('Escalate this complaint to QA? QA Manager will be able to assign it.')) return
+    setEscalating(true)
+    try {
+      const res = await fetch(`/api/complaints/${complaintId}/facility-escalate`, {
+        method: 'POST',
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Escalation failed')
+      }
+      await fetchComplaint()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Failed')
+    } finally {
+      setEscalating(false)
+    }
+  }
+
   const handleReject = async () => {
     setRejecting(true)
     try {
@@ -240,9 +265,17 @@ export default function ComplaintDetailPage({
 
   const isExecutive = userRole === 'qa_executive'
   const isQAManager = userRole === 'qa_manager'
+  const isFacilityManagerRole = userRole === 'facility_manager'
   const canSendForReview = isExecutive && complaint && !/resolved|closed/i.test(complaint.status || '') && !complaint.submitted_for_verification_at
   const pendingReview = complaint?.review_status === 'pending_review'
   const canApproveReject = isQAManager && complaint && pendingReview
+  const canEscalateToQa =
+    isFacilityManagerRole &&
+    complaint &&
+    complaint.equipment_id &&
+    !complaint.facility_escalated_at &&
+    hasPermission(user.permissions, 'facility_complaints:escalate')
+  const showDocUploads = !isFacilityManagerRole
 
   if (loading) {
     return (
@@ -325,6 +358,26 @@ export default function ComplaintDetailPage({
           <p className="mt-1 text-sm font-medium text-[#081636]">{formatFacilityName(complaint.facilities)}</p>
         </div>
 
+        {complaint.equipment_id && (
+          <div className="mt-4 rounded-lg border border-teal-200 bg-teal-50/60 p-4">
+            <p className="text-xs font-semibold uppercase text-teal-800">Equipment</p>
+            <p className="mt-1 text-sm font-medium text-[#081636]">
+              {complaint.facility_equipment?.name ?? '—'}
+              {complaint.facility_equipment?.asset_tag
+                ? ` · Tag: ${complaint.facility_equipment.asset_tag}`
+                : ''}
+              {complaint.facility_equipment?.model
+                ? ` · Model: ${complaint.facility_equipment.model}`
+                : ''}
+            </p>
+            {complaint.facility_escalated_at && (
+              <p className="mt-2 text-xs text-teal-900">
+                Escalated to QA {formatDate(complaint.facility_escalated_at)}
+              </p>
+            )}
+          </div>
+        )}
+
         <ComplaintAdditionalDetails
           description={complaint.description}
           customFields={complaint.custom_fields}
@@ -405,27 +458,29 @@ export default function ComplaintDetailPage({
             {complaint.capa_verified_at && (
               <p className="mt-1 text-xs text-green-600">Verified {formatDate(complaint.capa_verified_at)}</p>
             )}
-            <div className="mt-2 flex items-center gap-2">
-              <input
-                ref={fileInputCapa}
-                type="file"
-                className="hidden"
-                accept=".pdf,.doc,.docx,image/*"
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  if (f) handleUploadDocument('capa', f)
-                  e.target.value = ''
-                }}
-              />
-              <button
-                type="button"
-                disabled={!!uploadingDoc}
-                onClick={() => fileInputCapa.current?.click()}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-[#081636] hover:bg-gray-50 disabled:opacity-50"
-              >
-                {uploadingDoc === 'capa' ? 'Uploading...' : 'Upload new version'}
-              </button>
-            </div>
+            {showDocUploads && (
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  ref={fileInputCapa}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,image/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) handleUploadDocument('capa', f)
+                    e.target.value = ''
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={!!uploadingDoc}
+                  onClick={() => fileInputCapa.current?.click()}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-[#081636] hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {uploadingDoc === 'capa' ? 'Uploading...' : 'Upload new version'}
+                </button>
+              </div>
+            )}
             {capaDocs.length > 0 && (
               <ul className="mt-3 space-y-1 text-xs text-gray-600">
                 {capaDocs.map((d) => (
@@ -456,27 +511,29 @@ export default function ComplaintDetailPage({
             {complaint.sla_verified_at && (
               <p className="mt-1 text-xs text-green-600">Verified {formatDate(complaint.sla_verified_at)}</p>
             )}
-            <div className="mt-2 flex items-center gap-2">
-              <input
-                ref={fileInputSla}
-                type="file"
-                className="hidden"
-                accept=".pdf,.doc,.docx,image/*"
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  if (f) handleUploadDocument('sla', f)
-                  e.target.value = ''
-                }}
-              />
-              <button
-                type="button"
-                disabled={!!uploadingDoc}
-                onClick={() => fileInputSla.current?.click()}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-[#081636] hover:bg-gray-50 disabled:opacity-50"
-              >
-                {uploadingDoc === 'sla' ? 'Uploading...' : 'Upload new version'}
-              </button>
-            </div>
+            {showDocUploads && (
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  ref={fileInputSla}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,image/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) handleUploadDocument('sla', f)
+                    e.target.value = ''
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={!!uploadingDoc}
+                  onClick={() => fileInputSla.current?.click()}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-[#081636] hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {uploadingDoc === 'sla' ? 'Uploading...' : 'Upload new version'}
+                </button>
+              </div>
+            )}
             {slaDocs.length > 0 && (
               <ul className="mt-3 space-y-1 text-xs text-gray-600">
                 {slaDocs.map((d) => (
@@ -494,6 +551,16 @@ export default function ComplaintDetailPage({
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-6">
+        {canEscalateToQa && (
+          <button
+            type="button"
+            onClick={handleFacilityEscalate}
+            disabled={escalating}
+            className="rounded-lg bg-[#0f766e] px-4 py-2 text-sm font-medium text-white hover:bg-[#0d9488] disabled:opacity-50"
+          >
+            {escalating ? 'Escalating…' : 'Escalate to QA'}
+          </button>
+        )}
         {canSendForReview && (
           <button
             onClick={handleSendForReview}

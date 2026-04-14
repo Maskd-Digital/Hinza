@@ -39,7 +39,7 @@ export default function QAManagerDashboard({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`/api/complaints?company_id=${companyId}`)
+    fetch(`/api/complaints?company_id=${companyId}&qa_workspace=1`)
       .then((res) => res.json())
       .then((data: ComplaintSummary[]) => {
         const list = Array.isArray(data) ? data : []
