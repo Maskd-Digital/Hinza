@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
+import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
 import { CreateRoleInput } from '@/types/role'
 
 export async function GET(request: NextRequest) {
@@ -46,17 +49,26 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const sessionUser = await getUserWithRoles()
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!hasPermission(sessionUser.permissions, 'roles:create')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const body: CreateRoleInput = await request.json()
-    const trimmedName = body.name.trim()
+
+    if (!body.company_id) {
+      return NextResponse.json({ error: 'company_id is required' }, { status: 400 })
+    }
+
+    if (!isSystemAdmin(sessionUser.company_id) && sessionUser.company_id !== body.company_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const trimmedName = typeof body.name === 'string' ? body.name.trim() : ''
 
     if (!trimmedName) {
       return NextResponse.json(
@@ -65,19 +77,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if a role with the same name (case-insensitive) already exists for this company
-    // Fetch all roles for the company and do case-insensitive comparison
-    const { data: allRoles, error: checkError } = await supabase
+    const adminClient = createAdminClient()
+
+    const { data: allRoles, error: checkError } = await adminClient
       .from('roles')
       .select('id, name')
       .eq('company_id', body.company_id)
 
     if (checkError) {
-      // If there's an error checking, log it but continue (database constraint will catch it)
       console.error('Error checking for existing role:', checkError)
     }
 
-    // Do case-insensitive comparison
     const existingRole = allRoles?.find(
       (role) => role.name.trim().toLowerCase() === trimmedName.toLowerCase()
     )
@@ -89,8 +99,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create role
-    const { data: role, error: roleError } = await supabase
+    const { data: role, error: roleError } = await adminClient
       .from('roles')
       .insert({
         name: trimmedName,
@@ -100,16 +109,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (roleError) {
-      // Check if it's a duplicate key error (PostgreSQL error code 23505)
       if (roleError.code === '23505' || roleError.message.includes('duplicate key') || roleError.message.includes('idx_roles_company_name')) {
-        // If we hit the constraint, fetch all roles and find the matching one (case-insensitive)
-        const { data: allRoles } = await supabase
+        const { data: rolesRetry } = await adminClient
           .from('roles')
           .select('name')
           .eq('company_id', body.company_id)
 
-        const matchingRole = allRoles?.find(
-          (role) => role.name.trim().toLowerCase() === trimmedName.toLowerCase()
+        const matchingRole = rolesRetry?.find(
+          (r) => r.name.trim().toLowerCase() === trimmedName.toLowerCase()
         )
 
         const existingName = matchingRole?.name || trimmedName
@@ -124,16 +131,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Assign permissions
     if (body.permission_ids && body.permission_ids.length > 0) {
       const rolePermissions = body.permission_ids.map((permissionId) => ({
         role_id: role.id,
         permission_id: permissionId,
       }))
 
-      const { error: permError } = await supabase
-        .from('role_permissions')
-        .insert(rolePermissions)
+      const { error: permError } = await adminClient.from('role_permissions').insert(rolePermissions)
 
       if (permError) {
         return NextResponse.json(

@@ -28,6 +28,7 @@ export default async function RolesPage({ params }: RolesPageProps) {
   const belongsToCompany = user.company_id === companyId
   const canViewRoles = hasPermission(user.permissions, 'roles:read')
   const canUpdateRoles = hasPermission(user.permissions, 'roles:update')
+  const canCreateRoles = hasPermission(user.permissions, 'roles:create')
   const canCreateUsers = hasPermission(user.permissions, 'users:create')
 
   if ((!isSuperAdmin && !belongsToCompany) || !canViewRoles) {
@@ -54,6 +55,7 @@ export default async function RolesPage({ params }: RolesPageProps) {
       <ManageRolesPage
         companyId={companyId}
         canUpdateRoles={canUpdateRoles}
+        canCreateRoles={canCreateRoles}
         canBulkAssignUsers={canCreateUsers}
       />
     </CompanyAdminLayout>

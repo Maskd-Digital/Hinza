@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Role } from '@/types/auth'
 import EditRoleModal from '@/features/companies/components/EditRoleModal'
+import CreateRoleModal from './CreateRoleModal'
 import ViewUsersByRoleModal from './ViewUsersByRoleModal'
 import BulkAddUsersModal from './BulkAddUsersModal'
 
@@ -17,12 +18,14 @@ interface RoleWithPermissions extends Role {
 interface ManageRolesPageProps {
   companyId: string
   canUpdateRoles: boolean
+  canCreateRoles: boolean
   canBulkAssignUsers: boolean
 }
 
 export default function ManageRolesPage({
   companyId,
   canUpdateRoles,
+  canCreateRoles,
   canBulkAssignUsers,
 }: ManageRolesPageProps) {
   const [roles, setRoles] = useState<RoleWithPermissions[]>([])
@@ -30,6 +33,7 @@ export default function ManageRolesPage({
   const [error, setError] = useState<string | null>(null)
 
   const [editingRole, setEditingRole] = useState<Role | null>(null)
+  const [createRoleOpen, setCreateRoleOpen] = useState(false)
   const [viewUsersRole, setViewUsersRole] = useState<Role | null>(null)
   const [bulkAddRole, setBulkAddRole] = useState<Role | null>(null)
 
@@ -66,11 +70,25 @@ export default function ManageRolesPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-[#081636]">Manage Roles</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          View and edit role permissions, see users per role, and bulk add users to roles.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-[#081636]">Manage Roles</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            View and edit role permissions, see users per role, and bulk add users to roles.
+          </p>
+        </div>
+        {canCreateRoles && (
+          <button
+            type="button"
+            onClick={() => setCreateRoleOpen(true)}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#0108B8] px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-[#0108B8]/90"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add role
+          </button>
+        )}
       </div>
 
       {error && (
@@ -83,7 +101,19 @@ export default function ManageRolesPage({
         <div className="py-12 text-center text-[#081636]">Loading roles...</div>
       ) : roles.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[#081636]">
-          No roles found for this company.
+          <p>No roles found for this company.</p>
+          {canCreateRoles && (
+            <button
+              type="button"
+              onClick={() => setCreateRoleOpen(true)}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#0108B8] px-4 py-2 text-sm font-medium text-white hover:bg-[#0108B8]/90"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add role
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -145,6 +175,15 @@ export default function ManageRolesPage({
             </div>
           ))}
         </div>
+      )}
+
+      {createRoleOpen && (
+        <CreateRoleModal
+          isOpen={createRoleOpen}
+          onClose={() => setCreateRoleOpen(false)}
+          companyId={companyId}
+          onSuccess={fetchRoles}
+        />
       )}
 
       {editingRole && (
