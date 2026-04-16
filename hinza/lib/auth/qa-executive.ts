@@ -10,6 +10,6 @@ export const QA_EXECUTIVE_ROLE_NAME = 'QA Executive'
 export function isQAExecutive(user: UserWithRoles | null | undefined): boolean {
   if (!user?.roles?.length) return false
   return user.roles.some(
-    (role) => role.name?.toLowerCase() === QA_EXECUTIVE_ROLE_NAME.toLowerCase()
+    (role) => role.name?.trim().toLowerCase() === QA_EXECUTIVE_ROLE_NAME.toLowerCase()
   )
 }

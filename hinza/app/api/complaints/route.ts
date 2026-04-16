@@ -31,6 +31,8 @@ export async function GET(request: NextRequest) {
     const facilityManagerScope = searchParams.get('facility_manager_scope') === '1'
     const pendingEscalationOnly = searchParams.get('pending_escalation_only') === '1'
     const qaWorkspace = searchParams.get('qa_workspace') === '1'
+    const limitParam = searchParams.get('limit')
+    const offsetParam = searchParams.get('offset')
 
     if (!companyId) {
       return NextResponse.json({ error: 'company_id is required' }, { status: 400 })
@@ -46,15 +48,29 @@ export async function GET(request: NextRequest) {
       'facility_complaints:read'
     )
 
-    if (!canReadComplaints && !(facilityManagerScope && canReadFacilityComplaints)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    // Backward-compatible mobile behavior: authenticated end users without complaints:read
+    // can still read their own submitted complaints (scoped by submitted_by_id).
+    const isOwnOnly = !canReadComplaints && !facilityManagerScope
 
     if (facilityManagerScope) {
       if (!isFacilityManager(user) || !canReadFacilityComplaints) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     }
+    if (!canReadComplaints && !(facilityManagerScope && canReadFacilityComplaints) && !isOwnOnly) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const parsedLimit = limitParam ? Number.parseInt(limitParam, 10) : NaN
+    const parsedOffset = offsetParam ? Number.parseInt(offsetParam, 10) : NaN
+    const offset = Number.isFinite(parsedOffset) && parsedOffset > 0 ? parsedOffset : 0
+    const limit = (() => {
+      if (Number.isFinite(parsedLimit) && parsedLimit > 0) {
+        // Clamp to keep this endpoint safe for mobile usage
+        return Math.min(parsedLimit, isOwnOnly ? 50 : 200)
+      }
+      return isOwnOnly ? 50 : 200
+    })()
 
     const adminClient = createAdminClient()
     let query = adminClient
@@ -62,7 +78,7 @@ export async function GET(request: NextRequest) {
       .select(COMPLAINT_LIST_SELECT)
       .eq('company_id', companyId)
       .order('created_at', { ascending: false })
-      .limit(200)
+      .range(offset, offset + limit - 1)
 
     if (qaWorkspace && (isQAManager(user) || isQAExecutive(user))) {
       query = query.or('equipment_id.is.null,facility_escalated_at.not.is.null')
@@ -77,6 +93,10 @@ export async function GET(request: NextRequest) {
       if (pendingEscalationOnly) {
         query = query.is('facility_escalated_at', null)
       }
+    }
+
+    if (isOwnOnly) {
+      query = query.eq('submitted_by_id', user.id)
     }
 
     if (assignedToId) {
