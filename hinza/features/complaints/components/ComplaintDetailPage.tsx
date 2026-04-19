@@ -43,6 +43,7 @@ export type ComplaintDetailUserRole =
   | 'company_admin'
   | 'qa_executive'
   | 'qa_manager'
+  | 'operations_manager'
   | 'facility_manager'
 
 interface ComplaintDetailPageProps {
@@ -79,6 +80,7 @@ export default function ComplaintDetailPage({
   const [rejectReason, setRejectReason] = useState('')
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [escalating, setEscalating] = useState(false)
+  const [notifyingOps, setNotifyingOps] = useState(false)
   const fileInputCapa = useRef<HTMLInputElement>(null)
   const fileInputSla = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -265,10 +267,12 @@ export default function ComplaintDetailPage({
 
   const isExecutive = userRole === 'qa_executive'
   const isQAManager = userRole === 'qa_manager'
+  const isOperationsManagerRole = userRole === 'operations_manager'
+  const isQAManagerLike = isQAManager || isOperationsManagerRole
   const isFacilityManagerRole = userRole === 'facility_manager'
   const canSendForReview = isExecutive && complaint && !/resolved|closed/i.test(complaint.status || '') && !complaint.submitted_for_verification_at
   const pendingReview = complaint?.review_status === 'pending_review'
-  const canApproveReject = isQAManager && complaint && pendingReview
+  const canApproveReject = isQAManagerLike && complaint && pendingReview
   const canEscalateToQa =
     isFacilityManagerRole &&
     complaint &&
@@ -276,6 +280,30 @@ export default function ComplaintDetailPage({
     !complaint.facility_escalated_at &&
     hasPermission(user.permissions, 'facility_complaints:escalate')
   const showDocUploads = !isFacilityManagerRole
+
+  const canNotifyOperations =
+    complaint &&
+    complaint.department_id &&
+    !complaint.operations_notified_at &&
+    (userRole === 'qa_manager' ||
+      (userRole === 'company_admin' && hasPermission(user.permissions, 'complaints:update')))
+
+  const handleNotifyOperations = async () => {
+    if (!complaint) return
+    setNotifyingOps(true)
+    try {
+      const res = await fetch(`/api/complaints/${complaintId}/notify-operations`, {
+        method: 'POST',
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to notify Operations')
+      await fetchComplaint()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Failed')
+    } finally {
+      setNotifyingOps(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -357,6 +385,22 @@ export default function ComplaintDetailPage({
           <p className="text-xs font-semibold uppercase text-gray-600">Location</p>
           <p className="mt-1 text-sm font-medium text-[#081636]">{formatFacilityName(complaint.facilities)}</p>
         </div>
+
+        {(complaint.departments?.name || complaint.department_id) && (
+          <div className="mt-4 rounded-lg border border-indigo-100 bg-indigo-50/80 p-4">
+            <p className="text-xs font-semibold uppercase text-indigo-900">Department</p>
+            <p className="mt-1 text-sm font-medium text-[#081636]">
+              {complaint.departments?.name ?? '—'}
+            </p>
+          </div>
+        )}
+
+        {complaint.operations_notified_at && (
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase text-slate-600">Operations notified</p>
+            <p className="mt-1 text-sm text-[#081636]">{formatDate(complaint.operations_notified_at)}</p>
+          </div>
+        )}
 
         {complaint.equipment_id && (
           <div className="mt-4 rounded-lg border border-teal-200 bg-teal-50/60 p-4">
@@ -551,6 +595,16 @@ export default function ComplaintDetailPage({
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-6">
+        {canNotifyOperations && (
+          <button
+            type="button"
+            onClick={handleNotifyOperations}
+            disabled={notifyingOps}
+            className="rounded-lg border border-indigo-600 bg-white px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
+          >
+            {notifyingOps ? 'Notifying…' : 'Notify Operations (awareness)'}
+          </button>
+        )}
         {canEscalateToQa && (
           <button
             type="button"

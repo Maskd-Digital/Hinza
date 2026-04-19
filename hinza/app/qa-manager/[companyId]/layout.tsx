@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { getCompanyById } from '@/lib/api/companies'
 import { isQAManager } from '@/lib/auth/qa-manager'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
 import QAManagerLayout from '@/features/qa-manager/components/QAManagerLayout'
 
 interface QAManagerLayoutProps {
@@ -24,7 +25,8 @@ export default async function QAManagerLayoutWrapper({
     redirect('/login?error=account_deactivated')
   }
 
-  if (!isQAManager(user)) {
+  // Operations Manager uses the same QA workspace shell with company-wide list access.
+  if (!isQAManager(user) && !isOperationsManager(user)) {
     redirect('/unauthorized')
   }
 
@@ -43,8 +45,10 @@ export default async function QAManagerLayoutWrapper({
     redirect('/unauthorized')
   }
 
+  const roleLabel = isOperationsManager(user) ? 'Operations Manager' : 'QA Manager'
+
   return (
-    <QAManagerLayout companyId={companyId} companyName={company.name}>
+    <QAManagerLayout companyId={companyId} companyName={company.name} roleLabel={roleLabel}>
       {children}
     </QAManagerLayout>
   )

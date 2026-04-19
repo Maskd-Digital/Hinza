@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { isSystemAdmin } from '@/lib/auth/permissions'
 import { isQAManager } from '@/lib/auth/qa-manager'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
 import { isQAExecutive } from '@/lib/auth/qa-executive'
 import { isFacilityManager } from '@/lib/auth/facility-manager'
 import LandingHero from '@/components/LandingHero'
@@ -27,6 +28,9 @@ export default async function Home() {
   // - Other company users -> Company Admin Dashboard
   if (isSystemAdmin(user.company_id)) {
     redirect('/dashboard')
+  }
+  if (isOperationsManager(user)) {
+    redirect(`/qa-manager/${user.company_id}`)
   }
   if (isQAManager(user)) {
     redirect(`/qa-manager/${user.company_id}`)

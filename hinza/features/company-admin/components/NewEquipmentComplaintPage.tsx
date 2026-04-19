@@ -14,6 +14,11 @@ interface EquipmentRow {
   facility_id: string
 }
 
+interface DepartmentRow {
+  id: string
+  name: string
+}
+
 interface NewEquipmentComplaintPageProps {
   companyId: string
   companyName: string
@@ -24,8 +29,10 @@ export default function NewEquipmentComplaintPage({
   companyName,
 }: NewEquipmentComplaintPageProps) {
   const router = useRouter()
+  const [departments, setDepartments] = useState<DepartmentRow[]>([])
   const [facilities, setFacilities] = useState<FacilityRow[]>([])
   const [equipment, setEquipment] = useState<EquipmentRow[]>([])
+  const [departmentId, setDepartmentId] = useState('')
   const [facilityId, setFacilityId] = useState('')
   const [equipmentId, setEquipmentId] = useState('')
   const [title, setTitle] = useState('')
@@ -38,8 +45,16 @@ export default function NewEquipmentComplaintPage({
     let cancelled = false
     ;(async () => {
       try {
-        const facRes = await fetch(`/api/facilities?company_id=${companyId}`)
+        const [depRes, facRes] = await Promise.all([
+          fetch(`/api/departments?company_id=${companyId}`),
+          fetch(`/api/facilities?company_id=${companyId}`),
+        ])
+        const dep = await depRes.json()
         const fac = await facRes.json()
+        if (!cancelled && Array.isArray(dep)) {
+          setDepartments(dep)
+          if (dep[0]?.id) setDepartmentId(dep[0].id)
+        }
         if (!cancelled && Array.isArray(fac)) {
           setFacilities(fac)
           if (fac[0]?.id) setFacilityId(fac[0].id)
@@ -77,7 +92,7 @@ export default function NewEquipmentComplaintPage({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim() || !facilityId || !equipmentId) return
+    if (!title.trim() || !departmentId || !facilityId || !equipmentId) return
     setSaving(true)
     try {
       const res = await fetch('/api/complaints', {
@@ -87,6 +102,7 @@ export default function NewEquipmentComplaintPage({
           company_id: companyId,
           title: title.trim(),
           description: description.trim() || null,
+          department_id: departmentId,
           facility_id: facilityId,
           equipment_id: equipmentId,
           priority: priority || null,
@@ -118,6 +134,25 @@ export default function NewEquipmentComplaintPage({
         onSubmit={handleSubmit}
         className="space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
       >
+        <div>
+          <label className="text-xs font-medium text-gray-600">Department</label>
+          <select
+            value={departmentId}
+            onChange={(e) => setDepartmentId(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            required
+          >
+            {departments.length === 0 ? (
+              <option value="">Create departments first</option>
+            ) : (
+              departments.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
         <div>
           <label className="text-xs font-medium text-gray-600">Facility</label>
           <select
@@ -186,7 +221,7 @@ export default function NewEquipmentComplaintPage({
         <div className="flex gap-3">
           <button
             type="submit"
-            disabled={saving || !equipmentId}
+            disabled={saving || !equipmentId || !departmentId}
             className="rounded-lg bg-[#0108B8] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
             {saving ? 'Submitting…' : 'Submit complaint'}

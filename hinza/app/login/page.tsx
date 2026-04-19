@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { SYSTEM_ADMIN_COMPANY_ID } from '@/lib/auth/permissions'
 import { isFacilityManager } from '@/lib/auth/facility-manager'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
 import type { UserWithRoles } from '@/types/auth'
 
 function LoginForm() {
@@ -71,6 +72,8 @@ function LoginForm() {
           // Redirect: System admin -> dashboard; QA Manager/Executive -> dedicated dashboards; else company admin
           if (dbUser.company_id === SYSTEM_ADMIN_COMPANY_ID) {
             router.push('/dashboard')
+          } else if (isOperationsManager(sessionUser)) {
+            router.push(`/qa-manager/${dbUser.company_id}`)
           } else if (
             dbUser.roles?.some(
               (r: { name?: string }) =>

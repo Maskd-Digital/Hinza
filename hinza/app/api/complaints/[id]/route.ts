@@ -5,7 +5,10 @@ import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
 import { isQAManager } from '@/lib/auth/qa-manager'
 import { isQAExecutive } from '@/lib/auth/qa-executive'
 import { isFacilityManager } from '@/lib/auth/facility-manager'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
+import { isDepartmentScopedQaWorkspaceUser } from '@/lib/auth/qa-workspace-scope'
 import { getAssignedFacilityIdsForUser } from '@/lib/api/facility-manager-scope'
+import { userHasDepartmentAssignment } from '@/lib/api/department-scope'
 import { UpdateComplaintInput } from '@/types/complaint'
 import { insertNotificationsForQaManagers } from '@/lib/notify/qa-managers'
 
@@ -14,10 +17,10 @@ interface RouteParams {
 }
 
 const COMPLAINT_DETAIL_SELECT =
-  '*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name), facility_equipment(name, asset_tag, model)'
+  '*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name), facility_equipment(name, asset_tag, model), departments:departments!department_id(id, name, code)'
 
 const COMPLAINT_DETAIL_SELECT_FALLBACK =
-  '*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name)'
+  '*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name), departments:departments!department_id(id, name, code)'
 
 function normalizeTemplateRow(raw: Record<string, unknown>) {
   const templateObj = Array.isArray(raw.template)
@@ -85,14 +88,31 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       equipment_id?: string | null
       facility_id?: string | null
       facility_escalated_at?: string | null
+      department_id?: string | null
     }
 
     if (!isSystemAdmin(user.company_id) && user.company_id !== complaint.company_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    if (isPreFacilityEscalation(complaint) && (isQAManager(user) || isQAExecutive(user))) {
+    if (
+      isPreFacilityEscalation(complaint) &&
+      (isQAManager(user) || isQAExecutive(user)) &&
+      !isOperationsManager(user)
+    ) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (hasPermission(user.permissions, 'complaints:read') && isDepartmentScopedQaWorkspaceUser(user)) {
+      const allowed = await userHasDepartmentAssignment(
+        adminClient,
+        user.id,
+        complaint.company_id,
+        complaint.department_id
+      )
+      if (!allowed) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     if (!hasPermission(user.permissions, 'complaints:read')) {
@@ -137,7 +157,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const { data: existing, error: exErr } = await adminClient
       .from('complaints')
       .select(
-        'id, company_id, equipment_id, facility_id, facility_escalated_at, assigned_to_id'
+        'id, company_id, equipment_id, facility_id, facility_escalated_at, assigned_to_id, department_id'
       )
       .eq('id', id)
       .single()
@@ -152,9 +172,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (
       isPreFacilityEscalation(existing as { equipment_id?: string | null; facility_escalated_at?: string | null }) &&
-      (isQAManager(user) || isQAExecutive(user))
+      (isQAManager(user) || isQAExecutive(user)) &&
+      !isOperationsManager(user)
     ) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (isDepartmentScopedQaWorkspaceUser(user)) {
+      const allowed = await userHasDepartmentAssignment(
+        adminClient,
+        user.id,
+        existing.company_id as string,
+        existing.department_id as string | null | undefined
+      )
+      if (!allowed) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     const update: Record<string, unknown> = {}
@@ -227,6 +260,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     } else if (
       isQAManager(user) ||
+      isOperationsManager(user) ||
       hasPermission(user.permissions, 'complaints:update')
     ) {
       // full update object as built
@@ -262,7 +296,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         type: 'complaint_sent_for_review',
         title: 'Complaint sent for review',
         body: `"${complaintTitle}" has been sent for your verification.`,
-      })
+      }, data.department_id as string | null | undefined)
     }
 
     return NextResponse.json(data)

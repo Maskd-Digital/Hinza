@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { data: complaint, error: cErr } = await adminClient
       .from('complaints')
       .select(
-        'id, company_id, title, equipment_id, facility_id, facility_escalated_at'
+        'id, company_id, title, equipment_id, facility_id, facility_escalated_at, department_id'
       )
       .eq('id', id)
       .single()
@@ -90,7 +90,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         type: 'facility_complaint_escalated',
         title: 'Facility complaint escalated',
         body: `"${complaintTitle}" was escalated from Facility Manager for QA handling.`,
-      }
+      },
+      complaint.department_id as string | null | undefined
     )
 
     return NextResponse.json(updated)

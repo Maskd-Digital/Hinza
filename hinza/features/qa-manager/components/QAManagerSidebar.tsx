@@ -8,11 +8,13 @@ import NotificationsDropdown from './NotificationsDropdown'
 interface QAManagerSidebarProps {
   companyId: string
   companyName: string
+  roleLabel?: string
 }
 
 export default function QAManagerSidebar({
   companyId,
   companyName,
+  roleLabel = 'QA Manager',
 }: QAManagerSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -52,7 +54,7 @@ export default function QAManagerSidebar({
               <h2 className="truncate text-sm font-semibold text-white">
                 {companyName}
               </h2>
-              <p className="text-xs text-white/70">QA Manager</p>
+              <p className="text-xs text-white/70">{roleLabel}</p>
             </div>
             <NotificationsDropdown companyId={companyId} />
           </div>

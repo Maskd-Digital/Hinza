@@ -1,0 +1,18 @@
+-- Optional manual backfill: one default department per company that has complaints without department_id,
+-- then set complaints.department_id. Review before running in production.
+
+-- Example pattern (uncomment and replace placeholders):
+--
+-- INSERT INTO public.departments (company_id, name, code, sort_order)
+-- SELECT c.id, 'General', 'GEN', 0
+-- FROM public.companies c
+-- WHERE NOT EXISTS (
+--   SELECT 1 FROM public.departments d WHERE d.company_id = c.id
+-- );
+--
+-- UPDATE public.complaints co
+-- SET department_id = d.id
+-- FROM public.departments d
+-- WHERE co.department_id IS NULL
+--   AND d.company_id = co.company_id
+--   AND d.code = 'GEN';

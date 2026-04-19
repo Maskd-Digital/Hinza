@@ -5,11 +5,15 @@ import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
 import { isQAManager } from '@/lib/auth/qa-manager'
 import { isQAExecutive } from '@/lib/auth/qa-executive'
 import { isFacilityManager } from '@/lib/auth/facility-manager'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
+import { isDepartmentScopedQaWorkspaceUser } from '@/lib/auth/qa-workspace-scope'
 import { getAssignedFacilityIdsForUser } from '@/lib/api/facility-manager-scope'
+import { getAssignedDepartmentIdsForUser } from '@/lib/api/department-scope'
 import { insertNotificationsForFacilityManagersAtFacility } from '@/lib/notify/qa-managers'
+import { insertNotificationsForDepartmentQaManagers } from '@/lib/notify/qa-managers'
 
 const COMPLAINT_LIST_SELECT =
-  '*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name)'
+  '*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name), departments:departments!department_id(id, name, code)'
 
 function normalizeTemplateRow(raw: Record<string, unknown>) {
   const templateObj = Array.isArray(raw.template)
@@ -80,8 +84,24 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
-    if (qaWorkspace && (isQAManager(user) || isQAExecutive(user))) {
+    if (
+      qaWorkspace &&
+      (isQAManager(user) || isQAExecutive(user)) &&
+      !isOperationsManager(user)
+    ) {
       query = query.or('equipment_id.is.null,facility_escalated_at.not.is.null')
+    }
+
+    if (qaWorkspace && isDepartmentScopedQaWorkspaceUser(user)) {
+      const deptIds = await getAssignedDepartmentIdsForUser(
+        adminClient,
+        user.id,
+        companyId
+      )
+      if (deptIds.length === 0) {
+        return NextResponse.json([])
+      }
+      query = query.in('department_id', deptIds)
     }
 
     if (facilityManagerScope) {
@@ -147,6 +167,7 @@ export async function POST(request: NextRequest) {
       typeof body.description === 'string' ? body.description.trim() || null : null
     const facilityId = typeof body.facility_id === 'string' ? body.facility_id : null
     const equipmentId = typeof body.equipment_id === 'string' ? body.equipment_id : null
+    const departmentId = typeof body.department_id === 'string' ? body.department_id : null
     const templateId =
       typeof body.template_id === 'string' && body.template_id
         ? body.template_id
@@ -171,7 +192,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!departmentId) {
+      return NextResponse.json(
+        { error: 'department_id is required' },
+        { status: 400 }
+      )
+    }
+
     const adminClient = createAdminClient()
+
+    const { data: deptRow, error: deptErr } = await adminClient
+      .from('departments')
+      .select('id')
+      .eq('id', departmentId)
+      .eq('company_id', companyId)
+      .maybeSingle()
+
+    if (deptErr || !deptRow) {
+      return NextResponse.json({ error: 'Invalid department for this company' }, { status: 400 })
+    }
 
     const { data: equipment, error: eqErr } = await adminClient
       .from('facility_equipment')
@@ -201,6 +240,7 @@ export async function POST(request: NextRequest) {
       priority,
       facility_id: facilityId,
       equipment_id: equipmentId,
+      department_id: departmentId,
       template_id: templateId,
       submitted_by_id: user.id,
     }
@@ -219,6 +259,14 @@ export async function POST(request: NextRequest) {
       adminClient,
       companyId,
       facilityId,
+      created.id as string,
+      title
+    )
+
+    await insertNotificationsForDepartmentQaManagers(
+      adminClient,
+      companyId,
+      departmentId,
       created.id as string,
       title
     )

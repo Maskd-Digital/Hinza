@@ -37,6 +37,12 @@ export interface Complaint {
   equipment_id?: string | null
   facility_escalated_at?: string | null
   facility_escalated_by?: string | null
+  /** Business department (Sales & Retail, Manufacturing, …) for routing QA */
+  department_id?: string | null
+  departments?: { id: string; name: string; code?: string | null } | null
+  /** Dept QA escalated to Operations Manager for awareness */
+  operations_notified_at?: string | null
+  operations_notified_by?: string | null
   /** Template-defined fields stored as JSON: object of field name -> value, or array of { field_name, value } */
   custom_fields?: Record<string, unknown> | Array<{ field_name?: string; name?: string; value?: unknown }> | null
   /** Hierarchy: parent complaint id */

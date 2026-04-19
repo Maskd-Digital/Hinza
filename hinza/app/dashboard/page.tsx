@@ -3,6 +3,7 @@ import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
 import { isFacilityManager } from '@/lib/auth/facility-manager'
 import { isQAManager } from '@/lib/auth/qa-manager'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
 import { isQAExecutive } from '@/lib/auth/qa-executive'
 import { getDashboardStats } from '@/lib/api/dashboard'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -23,6 +24,9 @@ export default async function DashboardPage() {
 
   // Only system-level users should see this superadmin dashboard
   if (!isSystemAdmin(user.company_id)) {
+    if (isOperationsManager(user)) {
+      redirect(`/qa-manager/${user.company_id}`)
+    }
     if (isQAManager(user)) {
       redirect(`/qa-manager/${user.company_id}`)
     }

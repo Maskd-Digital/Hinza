@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { getCompanyById } from '@/lib/api/companies'
 import { isQAManager } from '@/lib/auth/qa-manager'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
 import QAManagerComplaintsPage from '@/features/qa-manager/components/QAManagerComplaintsPage'
 
 interface QAManagerComplaintsPageProps {
@@ -22,7 +23,7 @@ export default async function QAManagerComplaintsRoute({
     redirect('/login?error=account_deactivated')
   }
 
-  if (!isQAManager(user)) {
+  if (!isQAManager(user) && !isOperationsManager(user)) {
     redirect('/unauthorized')
   }
 
