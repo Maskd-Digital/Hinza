@@ -7,11 +7,13 @@ import { createClient } from '@/lib/supabase/client'
 interface FacilityManagerSidebarProps {
   companyId: string
   companyName: string
+  roleLabel?: string
 }
 
 export default function FacilityManagerSidebar({
   companyId,
   companyName,
+  roleLabel = 'Facility Manager',
 }: FacilityManagerSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -44,7 +46,7 @@ export default function FacilityManagerSidebar({
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-sm font-semibold text-white">{companyName}</h2>
-              <p className="text-xs text-white/70">Facility Manager</p>
+              <p className="text-xs text-white/70">{roleLabel}</p>
             </div>
           </div>
         </div>

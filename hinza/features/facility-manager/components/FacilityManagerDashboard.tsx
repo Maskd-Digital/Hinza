@@ -7,11 +7,13 @@ import type { Complaint } from '@/types/complaint'
 interface FacilityManagerDashboardProps {
   companyId: string
   companyName: string
+  roleLabel?: string
 }
 
 export default function FacilityManagerDashboard({
   companyId,
   companyName,
+  roleLabel = 'Facility Manager',
 }: FacilityManagerDashboardProps) {
   const [pending, setPending] = useState<Complaint[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,7 +33,7 @@ export default function FacilityManagerDashboard({
   return (
     <div className="p-6" style={{ backgroundColor: '#EFF4FF' }}>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#081636]">Facility Manager</h1>
+        <h1 className="text-2xl font-bold text-[#081636]">{roleLabel}</h1>
         <p className="mt-1 text-[#081636]">
           {companyName} — review equipment complaints at your facilities before they go to QA.
         </p>

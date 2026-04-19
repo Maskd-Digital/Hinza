@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { getCompanyById } from '@/lib/api/companies'
-import { isFacilityManager } from '@/lib/auth/facility-manager'
+import { getFacilityScopeRoleDisplayName, isFacilityManager } from '@/lib/auth/facility-manager'
 import { hasPermission } from '@/lib/auth/permissions'
 import FacilityManagerLayout from '@/features/facility-manager/components/FacilityManagerLayout'
 
@@ -34,8 +34,10 @@ export default async function FacilityManagerLayoutWrapper({
   }
   if (!company) redirect('/unauthorized')
 
+  const roleLabel = getFacilityScopeRoleDisplayName(user) ?? 'Facility Manager'
+
   return (
-    <FacilityManagerLayout companyId={companyId} companyName={company.name}>
+    <FacilityManagerLayout companyId={companyId} companyName={company.name} roleLabel={roleLabel}>
       {children}
     </FacilityManagerLayout>
   )

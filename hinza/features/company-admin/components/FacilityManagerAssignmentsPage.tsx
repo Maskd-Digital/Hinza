@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { roleNameIsFacilityScope } from '@/lib/auth/facility-manager'
 import type { Permission } from '@/types/auth'
 
 interface FacilityRow {
@@ -115,10 +116,7 @@ export default function FacilityManagerAssignmentsPage({
   }
 
   const facilityManagers = useMemo(
-    () =>
-      users.filter((u) =>
-        u.roles?.some((r) => r.name?.toLowerCase() === 'facility manager')
-      ),
+    () => users.filter((u) => u.roles?.some((r) => roleNameIsFacilityScope(r.name))),
     [users]
   )
 

@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
+import { isFacilityManager } from '@/lib/auth/facility-manager'
+import { isQAManager } from '@/lib/auth/qa-manager'
+import { isQAExecutive } from '@/lib/auth/qa-executive'
 import { getDashboardStats } from '@/lib/api/dashboard'
 import DashboardLayout from '@/components/DashboardLayout'
 import StatCard from '@/components/dashboard/StatCard'
@@ -18,9 +21,17 @@ export default async function DashboardPage() {
     redirect('/login?error=account_deactivated')
   }
 
-  // Only system-level users (with SYSTEM_ADMIN_COMPANY_ID) should see this superadmin dashboard
-  // Other users should be redirected to their Company Admin Dashboard
+  // Only system-level users should see this superadmin dashboard
   if (!isSystemAdmin(user.company_id)) {
+    if (isQAManager(user)) {
+      redirect(`/qa-manager/${user.company_id}`)
+    }
+    if (isQAExecutive(user)) {
+      redirect(`/qa-executive/${user.company_id}`)
+    }
+    if (isFacilityManager(user)) {
+      redirect(`/facility-manager/${user.company_id}`)
+    }
     redirect(`/company-admin/${user.company_id}`)
   }
 

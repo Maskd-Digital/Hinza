@@ -4,6 +4,8 @@ import { Suspense, useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { SYSTEM_ADMIN_COMPANY_ID } from '@/lib/auth/permissions'
+import { isFacilityManager } from '@/lib/auth/facility-manager'
+import type { UserWithRoles } from '@/types/auth'
 
 function LoginForm() {
   const [email, setEmail] = useState('')
@@ -56,6 +58,7 @@ function LoginForm() {
           }
 
           const { user: dbUser } = await verifyResponse.json()
+          const sessionUser = dbUser as UserWithRoles
 
           // Check if user is active
           if (!dbUser.is_active) {
@@ -82,6 +85,8 @@ function LoginForm() {
             )
           ) {
             router.push(`/qa-executive/${dbUser.company_id}`)
+          } else if (isFacilityManager(sessionUser)) {
+            router.push(`/facility-manager/${dbUser.company_id}`)
           } else {
             router.push(`/company-admin/${dbUser.company_id}`)
           }
