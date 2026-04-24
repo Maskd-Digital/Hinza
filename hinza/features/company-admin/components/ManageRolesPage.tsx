@@ -37,6 +37,29 @@ export default function ManageRolesPage({
   const [viewUsersRole, setViewUsersRole] = useState<Role | null>(null)
   const [bulkAddRole, setBulkAddRole] = useState<Role | null>(null)
 
+  const handleDeleteRole = async (role: Role) => {
+    const confirmed = window.confirm(
+      `Delete role "${role.name}"? This will remove the role from all users.`
+    )
+    if (!confirmed) return
+
+    try {
+      setError(null)
+      const response = await fetch(`/api/roles/${role.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to delete role')
+      }
+
+      await fetchRoles()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete role')
+    }
+  }
+
   const fetchRoles = async () => {
     setLoading(true)
     setError(null)
@@ -139,7 +162,7 @@ export default function ManageRolesPage({
                       onClick={() => setEditingRole(role)}
                       className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-[#081636] hover:bg-gray-50"
                     >
-                      Edit permissions
+                      Edit role
                     </button>
                   )}
                   <button
@@ -156,6 +179,15 @@ export default function ManageRolesPage({
                       className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
                     >
                       Bulk add users
+                    </button>
+                  )}
+                  {canUpdateRoles && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteRole(role)}
+                      className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
+                    >
+                      Remove role
                     </button>
                   )}
                 </div>

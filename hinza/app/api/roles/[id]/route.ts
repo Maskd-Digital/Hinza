@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
+import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
 
 interface UpdateRoleInput {
   name?: string
@@ -11,20 +13,21 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const sessionUser = await getUserWithRoles()
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!hasPermission(sessionUser.permissions, 'roles:update')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const adminClient = createAdminClient()
     const { id } = await params
     const body: UpdateRoleInput = await request.json()
 
     // Get the existing role to check company_id
-    const { data: existingRole, error: fetchError } = await supabase
+    const { data: existingRole, error: fetchError } = await adminClient
       .from('roles')
       .select('*')
       .eq('id', id)
@@ -35,6 +38,13 @@ export async function PATCH(
         { error: 'Role not found' },
         { status: 404 }
       )
+    }
+
+    if (
+      !isSystemAdmin(sessionUser.company_id) &&
+      sessionUser.company_id !== existingRole.company_id
+    ) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Update role name if provided
@@ -49,7 +59,7 @@ export async function PATCH(
       }
 
       // Check if another role with the same name exists (excluding current role)
-      const { data: allRoles } = await supabase
+      const { data: allRoles } = await adminClient
         .from('roles')
         .select('id, name')
         .eq('company_id', existingRole.company_id)
@@ -70,7 +80,7 @@ export async function PATCH(
       }
 
       // Update the role name
-      const { data: updatedRole, error: updateError } = await supabase
+      const { data: updatedRole, error: updateError } = await adminClient
         .from('roles')
         .update({ name: trimmedName })
         .eq('id', id)
@@ -88,7 +98,7 @@ export async function PATCH(
     // Update permissions if provided
     if (body.permission_ids !== undefined) {
       // Delete existing permissions
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await adminClient
         .from('role_permissions')
         .delete()
         .eq('role_id', id)
@@ -107,7 +117,7 @@ export async function PATCH(
           permission_id: permissionId,
         }))
 
-        const { error: insertError } = await supabase
+        const { error: insertError } = await adminClient
           .from('role_permissions')
           .insert(rolePermissions)
 
@@ -121,7 +131,7 @@ export async function PATCH(
     }
 
     // Fetch updated role
-    const { data: finalRole, error: finalError } = await supabase
+    const { data: finalRole, error: finalError } = await adminClient
       .from('roles')
       .select('*')
       .eq('id', id)
@@ -148,19 +158,37 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const sessionUser = await getUserWithRoles()
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!hasPermission(sessionUser.permissions, 'roles:delete')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const adminClient = createAdminClient()
     const { id } = await params
 
+    const { data: existingRole, error: fetchError } = await adminClient
+      .from('roles')
+      .select('id, company_id')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !existingRole) {
+      return NextResponse.json({ error: 'Role not found' }, { status: 404 })
+    }
+
+    if (
+      !isSystemAdmin(sessionUser.company_id) &&
+      sessionUser.company_id !== existingRole.company_id
+    ) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     // Delete the role (permissions will be cascade deleted)
-    const { error } = await supabase.from('roles').delete().eq('id', id)
+    const { error } = await adminClient.from('roles').delete().eq('id', id)
 
     if (error) {
       return NextResponse.json(
