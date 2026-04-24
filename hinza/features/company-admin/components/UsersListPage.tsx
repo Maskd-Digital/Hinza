@@ -15,11 +15,13 @@ interface User {
 interface UsersListPageProps {
   companyId: string
   canCreateUsers: boolean
+  canDeleteUsers: boolean
 }
 
 export default function UsersListPage({
   companyId,
   canCreateUsers,
+  canDeleteUsers,
 }: UsersListPageProps) {
   const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
@@ -79,6 +81,28 @@ export default function UsersListPage({
       fetchUsers()
     } catch (err) {
       console.error('Error updating user:', err)
+    }
+  }
+
+  const handleDeleteUser = async (userId: string, userLabel: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${userLabel}? This will deactivate the account and remove role assignments.`
+    )
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user')
+      }
+
+      fetchUsers()
+    } catch (err) {
+      console.error('Error deleting user:', err)
+      setError(err instanceof Error ? err.message : 'Failed to delete user')
     }
   }
 
@@ -310,6 +334,19 @@ export default function UsersListPage({
                         >
                           {user.is_active ? 'Deactivate' : 'Activate'}
                         </button>
+                        {canDeleteUsers && (
+                          <button
+                            onClick={() =>
+                              handleDeleteUser(
+                                user.id,
+                                user.full_name || user.email || 'this user'
+                              )
+                            }
+                            className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-red-700"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

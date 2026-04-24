@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
+import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -138,18 +140,40 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const { id } = await params
   
-  // Verify user is authenticated first
-  const supabase = await createClient()
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  
-  if (!authUser) {
+  const user = await getUserWithRoles()
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!hasPermission(user.permissions, 'users:delete')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   
   // Use admin client to bypass RLS
   const adminClient = createAdminClient()
   
   try {
+    const { data: targetUser, error: targetUserError } = await adminClient
+      .from('users')
+      .select('id, company_id')
+      .eq('id', id)
+      .single()
+
+    if (targetUserError || !targetUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    if (!isSystemAdmin(user.company_id) && user.company_id !== targetUser.company_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (user.id === id) {
+      return NextResponse.json(
+        { error: 'You cannot delete your own account' },
+        { status: 400 }
+      )
+    }
+
     // Remove user roles first
     await adminClient.from('user_roles').delete().eq('user_id', id)
     
