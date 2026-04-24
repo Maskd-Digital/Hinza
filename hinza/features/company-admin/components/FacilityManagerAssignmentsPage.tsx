@@ -27,6 +27,8 @@ interface AssignmentRow {
   role_type?: string
 }
 
+type AssignmentRoleType = 'facility_manager' | 'qa_executive'
+
 interface FacilityManagerAssignmentsPageProps {
   companyId: string
   companyName: string
@@ -44,29 +46,40 @@ export default function FacilityManagerAssignmentsPage({
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState('')
   const [facilityId, setFacilityId] = useState('')
+  const [roleType, setRoleType] = useState<AssignmentRoleType>('facility_manager')
   const [saving, setSaving] = useState(false)
 
-  const loadFacilityManagerUsers = async (): Promise<UserRow[]> => {
+  const roleTypeLabel = (type: string | undefined): string => {
+    if (type === 'qa_executive') return 'Executive'
+    return 'Manager'
+  }
+
+  const loadUsersForRoleType = async (selectedRoleType: AssignmentRoleType): Promise<UserRow[]> => {
     const rolesRes = await fetch(`/api/roles?company_id=${companyId}`)
     if (!rolesRes.ok) throw new Error('Failed to load roles')
 
     const rolesData: RoleRow[] = await rolesRes.json()
-    const facilityManagerRoles = (rolesData || []).filter(
-      (role) => role.name.trim().toLowerCase() === 'facility manager'
+    const targetRoleNames =
+      selectedRoleType === 'facility_manager'
+        ? ['facility manager', 'facility admin']
+        : ['qa executive']
+
+    const matchingRoles = (rolesData || []).filter((role) =>
+      targetRoleNames.includes(role.name.trim().toLowerCase())
     )
 
-    if (facilityManagerRoles.length === 0) {
+    if (matchingRoles.length === 0) {
       return []
     }
 
     const userResponses = await Promise.all(
-      facilityManagerRoles.map((role) =>
+      matchingRoles.map((role) =>
         fetch(`/api/users?company_id=${companyId}&role_id=${role.id}`)
       )
     )
 
     if (userResponses.some((res) => !res.ok)) {
-      throw new Error('Failed to load facility manager users')
+      throw new Error('Failed to load assignable users')
     }
 
     const usersByRole = await Promise.all(userResponses.map((res) => res.json()))
@@ -82,14 +95,19 @@ export default function FacilityManagerAssignmentsPage({
     try {
       const [facRes, users, asgRes] = await Promise.all([
         fetch(`/api/facilities?company_id=${companyId}`),
-        loadFacilityManagerUsers(),
-        fetch(`/api/facility-qa-assignments?company_id=${companyId}&role_type=facility_manager`),
+        loadUsersForRoleType(roleType),
+        fetch(`/api/facility-qa-assignments?company_id=${companyId}`),
       ])
       if (!facRes.ok || !asgRes.ok) throw new Error('Failed to load data')
       const [fac, asg] = await Promise.all([facRes.json(), asgRes.json()])
       setFacilities(Array.isArray(fac) ? fac : [])
       setUsers(users)
-      setAssignments(Array.isArray(asg) ? asg : [])
+      const assignmentRows = Array.isArray(asg) ? asg : []
+      setAssignments(
+        assignmentRows.filter(
+          (row) => row.role_type === 'facility_manager' || row.role_type === 'qa_executive'
+        )
+      )
       if (!facilityId && Array.isArray(fac) && fac[0]?.id) setFacilityId(fac[0].id)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load')
@@ -100,7 +118,7 @@ export default function FacilityManagerAssignmentsPage({
 
   useEffect(() => {
     load()
-  }, [companyId])
+  }, [companyId, roleType])
 
   const facilityNameById = useMemo(() => {
     const m = new Map<string, string>()
@@ -122,7 +140,7 @@ export default function FacilityManagerAssignmentsPage({
           user_id: userId,
           facility_id: facilityId,
           company_id: companyId,
-          role_type: 'facility_manager',
+          role_type: roleType,
         }),
       })
       const data = await res.json()
@@ -135,13 +153,13 @@ export default function FacilityManagerAssignmentsPage({
     }
   }
 
-  const handleRemove = async (user_id: string, facility_id: string) => {
+  const handleRemove = async (user_id: string, facility_id: string, assignmentRoleType: string) => {
     if (!confirm('Remove this assignment?')) return
     const qs = new URLSearchParams({
       user_id,
       facility_id,
       company_id: companyId,
-      role_type: 'facility_manager',
+      role_type: assignmentRoleType,
     })
     const res = await fetch(`/api/facility-qa-assignments?${qs}`, { method: 'DELETE' })
     if (!res.ok) {
@@ -155,9 +173,9 @@ export default function FacilityManagerAssignmentsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#081636]">Facility managers</h1>
+        <h1 className="text-2xl font-bold text-[#081636]">Facility assignments</h1>
         <p className="mt-1 text-sm text-[#081636]">
-          {companyName} — assign which users manage which facilities (per-facility scope).
+          {companyName} — assign facility managers and QA executives to facilities.
         </p>
       </div>
 
@@ -166,13 +184,28 @@ export default function FacilityManagerAssignmentsPage({
         className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
       >
         <p className="text-sm font-medium text-[#081636]">New assignment</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div>
+            <label className="text-xs font-medium text-gray-600">Role</label>
+            <select
+              value={roleType}
+              onChange={(e) => {
+                setRoleType(e.target.value as AssignmentRoleType)
+                setUserId('')
+              }}
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black"
+              required
+            >
+              <option value="facility_manager">Manager</option>
+              <option value="qa_executive">Executive</option>
+            </select>
+          </div>
           <div>
             <label className="text-xs font-medium text-gray-600">User</label>
             <select
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black"
               required
             >
               <option value="">Select user</option>
@@ -188,7 +221,7 @@ export default function FacilityManagerAssignmentsPage({
             <select
               value={facilityId}
               onChange={(e) => setFacilityId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black"
               required
             >
               {facilities.map((f) => (
@@ -220,6 +253,7 @@ export default function FacilityManagerAssignmentsPage({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left font-semibold text-[#081636]">User</th>
+                <th className="px-4 py-3 text-left font-semibold text-[#081636]">Role</th>
                 <th className="px-4 py-3 text-left font-semibold text-[#081636]">Facility</th>
                 <th className="px-4 py-3 text-right font-semibold text-[#081636]"> </th>
               </tr>
@@ -230,13 +264,16 @@ export default function FacilityManagerAssignmentsPage({
                 return (
                   <tr key={`${a.user_id}-${a.facility_id}`}>
                     <td className="px-4 py-3 text-[#081636]">{u ? userLabel(u) : a.user_id}</td>
+                    <td className="px-4 py-3 text-gray-700">{roleTypeLabel(a.role_type)}</td>
                     <td className="px-4 py-3 text-gray-700">
                       {facilityNameById.get(a.facility_id) ?? a.facility_id}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
-                        onClick={() => handleRemove(a.user_id, a.facility_id)}
+                        onClick={() =>
+                          handleRemove(a.user_id, a.facility_id, a.role_type || 'facility_manager')
+                        }
                         className="text-sm font-medium text-red-600 hover:underline"
                       >
                         Remove
