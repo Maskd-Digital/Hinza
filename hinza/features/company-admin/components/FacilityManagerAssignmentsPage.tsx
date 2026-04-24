@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { roleNameIsFacilityScope } from '@/lib/auth/facility-manager'
 import type { Permission } from '@/types/auth'
 
 interface FacilityRow {
@@ -16,10 +15,16 @@ interface UserRow {
   roles?: Array<{ name: string }>
 }
 
+interface RoleRow {
+  id: string
+  name: string
+}
+
 interface AssignmentRow {
   user_id: string
   facility_id: string
   company_id: string
+  role_type?: string
 }
 
 interface FacilityManagerAssignmentsPageProps {
@@ -41,19 +46,49 @@ export default function FacilityManagerAssignmentsPage({
   const [facilityId, setFacilityId] = useState('')
   const [saving, setSaving] = useState(false)
 
+  const loadFacilityManagerUsers = async (): Promise<UserRow[]> => {
+    const rolesRes = await fetch(`/api/roles?company_id=${companyId}`)
+    if (!rolesRes.ok) throw new Error('Failed to load roles')
+
+    const rolesData: RoleRow[] = await rolesRes.json()
+    const facilityManagerRoles = (rolesData || []).filter(
+      (role) => role.name.trim().toLowerCase() === 'facility manager'
+    )
+
+    if (facilityManagerRoles.length === 0) {
+      return []
+    }
+
+    const userResponses = await Promise.all(
+      facilityManagerRoles.map((role) =>
+        fetch(`/api/users?company_id=${companyId}&role_id=${role.id}`)
+      )
+    )
+
+    if (userResponses.some((res) => !res.ok)) {
+      throw new Error('Failed to load facility manager users')
+    }
+
+    const usersByRole = await Promise.all(userResponses.map((res) => res.json()))
+    const merged = usersByRole.flat().filter(Boolean) as UserRow[]
+    const unique = new Map<string, UserRow>()
+    merged.forEach((user) => unique.set(user.id, user))
+    return [...unique.values()]
+  }
+
   const load = async () => {
     setLoading(true)
     setError(null)
     try {
-      const [facRes, userRes, asgRes] = await Promise.all([
+      const [facRes, users, asgRes] = await Promise.all([
         fetch(`/api/facilities?company_id=${companyId}`),
-        fetch(`/api/users?company_id=${companyId}`),
-        fetch(`/api/facility-manager-assignments?company_id=${companyId}`),
+        loadFacilityManagerUsers(),
+        fetch(`/api/facility-qa-assignments?company_id=${companyId}&role_type=facility_manager`),
       ])
-      if (!facRes.ok || !userRes.ok || !asgRes.ok) throw new Error('Failed to load data')
-      const [fac, us, asg] = await Promise.all([facRes.json(), userRes.json(), asgRes.json()])
+      if (!facRes.ok || !asgRes.ok) throw new Error('Failed to load data')
+      const [fac, asg] = await Promise.all([facRes.json(), asgRes.json()])
       setFacilities(Array.isArray(fac) ? fac : [])
-      setUsers(Array.isArray(us) ? us : [])
+      setUsers(users)
       setAssignments(Array.isArray(asg) ? asg : [])
       if (!facilityId && Array.isArray(fac) && fac[0]?.id) setFacilityId(fac[0].id)
     } catch (e) {
@@ -80,13 +115,14 @@ export default function FacilityManagerAssignmentsPage({
     if (!userId || !facilityId) return
     setSaving(true)
     try {
-      const res = await fetch('/api/facility-manager-assignments', {
+      const res = await fetch('/api/facility-qa-assignments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: userId,
           facility_id: facilityId,
           company_id: companyId,
+          role_type: 'facility_manager',
         }),
       })
       const data = await res.json()
@@ -105,8 +141,9 @@ export default function FacilityManagerAssignmentsPage({
       user_id,
       facility_id,
       company_id: companyId,
+      role_type: 'facility_manager',
     })
-    const res = await fetch(`/api/facility-manager-assignments?${qs}`, { method: 'DELETE' })
+    const res = await fetch(`/api/facility-qa-assignments?${qs}`, { method: 'DELETE' })
     if (!res.ok) {
       const d = await res.json()
       alert(d.error || 'Failed')
@@ -114,13 +151,6 @@ export default function FacilityManagerAssignmentsPage({
     }
     await load()
   }
-
-  const facilityManagers = useMemo(
-    () => users.filter((u) => u.roles?.some((r) => roleNameIsFacilityScope(r.name))),
-    [users]
-  )
-
-  const userOptions = facilityManagers.length > 0 ? facilityManagers : users
 
   return (
     <div className="space-y-6">
@@ -146,7 +176,7 @@ export default function FacilityManagerAssignmentsPage({
               required
             >
               <option value="">Select user</option>
-              {userOptions.map((u) => (
+              {users.map((u) => (
                 <option key={u.id} value={u.id}>
                   {userLabel(u)}
                 </option>

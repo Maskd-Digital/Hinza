@@ -6,10 +6,11 @@ export async function getAssignedFacilityIdsForUser(
   companyId: string
 ): Promise<string[]> {
   const { data, error } = await adminClient
-    .from('facility_manager_assignments')
+    .from('facility_qa_assignments')
     .select('facility_id')
     .eq('user_id', userId)
     .eq('company_id', companyId)
+    .eq('role_type', 'facility_manager')
 
   if (error || !data?.length) return []
   return data.map((r) => r.facility_id as string)

@@ -2,7 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
-import { isFacilityManager } from '@/lib/auth/facility-manager'
+
+const VALID_ROLE_TYPES = ['facility_manager', 'qa_executive', 'qa_manager'] as const
+type FacilityAssignmentRoleType = (typeof VALID_ROLE_TYPES)[number]
+
+function hasQaAssignPermission(userPermissions: Parameters<typeof hasPermission>[0]): boolean {
+  return (
+    hasPermission(userPermissions, 'department_qa:assign') ||
+    hasPermission(userPermissions, 'facility_managers:assign')
+  )
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,6 +19,7 @@ export async function GET(request: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const companyId = request.nextUrl.searchParams.get('company_id')
+    const roleTypeParam = request.nextUrl.searchParams.get('role_type')
     if (!companyId) {
       return NextResponse.json({ error: 'company_id is required' }, { status: 400 })
     }
@@ -18,39 +28,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    if (!hasQaAssignPermission(user.permissions)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const adminClient = createAdminClient()
+    let query = adminClient
+      .from('facility_qa_assignments')
+      .select('user_id, facility_id, company_id, role_type, created_at')
+      .eq('company_id', companyId)
 
-    if (hasPermission(user.permissions, 'facility_managers:assign')) {
-      const { data, error } = await adminClient
-        .from('facility_manager_assignments')
-        .select('user_id, facility_id, company_id, created_at')
-        .eq('company_id', companyId)
-
-      if (error) {
-        if (error.code === '42P01') return NextResponse.json([])
-        return NextResponse.json({ error: error.message }, { status: 500 })
+    if (roleTypeParam) {
+      if (!VALID_ROLE_TYPES.includes(roleTypeParam as FacilityAssignmentRoleType)) {
+        return NextResponse.json({ error: 'Invalid role_type' }, { status: 400 })
       }
-      return NextResponse.json(data || [])
+      query = query.eq('role_type', roleTypeParam)
     }
 
-    if (
-      isFacilityManager(user) &&
-      hasPermission(user.permissions, 'facility_complaints:read')
-    ) {
-      const { data, error } = await adminClient
-        .from('facility_manager_assignments')
-        .select('user_id, facility_id, company_id, created_at')
-        .eq('company_id', companyId)
-        .eq('user_id', user.id)
+    const { data, error } = await query
 
-      if (error) {
-        if (error.code === '42P01') return NextResponse.json([])
-        return NextResponse.json({ error: error.message }, { status: 500 })
-      }
-      return NextResponse.json(data || [])
+    if (error) {
+      if (error.code === '42P01') return NextResponse.json([])
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
-
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return NextResponse.json(data || [])
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : 'Internal server error' },
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
     const user = await getUserWithRoles()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    if (!hasPermission(user.permissions, 'facility_managers:assign')) {
+    if (!hasQaAssignPermission(user.permissions)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -72,12 +73,20 @@ export async function POST(request: NextRequest) {
     const userId = typeof body.user_id === 'string' ? body.user_id : null
     const facilityId = typeof body.facility_id === 'string' ? body.facility_id : null
     const companyId = typeof body.company_id === 'string' ? body.company_id : null
+    const roleType =
+      typeof body.role_type === 'string'
+        ? (body.role_type as FacilityAssignmentRoleType)
+        : null
 
-    if (!userId || !facilityId || !companyId) {
+    if (!userId || !facilityId || !companyId || !roleType) {
       return NextResponse.json(
-        { error: 'user_id, facility_id, and company_id are required' },
+        { error: 'user_id, facility_id, company_id, and role_type are required' },
         { status: 400 }
       )
+    }
+
+    if (!VALID_ROLE_TYPES.includes(roleType)) {
+      return NextResponse.json({ error: 'Invalid role_type' }, { status: 400 })
     }
 
     if (!isSystemAdmin(user.company_id) && user.company_id !== companyId) {
@@ -107,8 +116,13 @@ export async function POST(request: NextRequest) {
     }
 
     const { data, error } = await adminClient
-      .from('facility_manager_assignments')
-      .insert({ user_id: userId, facility_id: facilityId, company_id: companyId })
+      .from('facility_qa_assignments')
+      .insert({
+        user_id: userId,
+        facility_id: facilityId,
+        company_id: companyId,
+        role_type: roleType,
+      })
       .select()
       .single()
 
@@ -133,19 +147,27 @@ export async function DELETE(request: NextRequest) {
     const user = await getUserWithRoles()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    if (!hasPermission(user.permissions, 'facility_managers:assign')) {
+    if (!hasQaAssignPermission(user.permissions)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const userId = request.nextUrl.searchParams.get('user_id')
     const facilityId = request.nextUrl.searchParams.get('facility_id')
     const companyId = request.nextUrl.searchParams.get('company_id')
+    const roleType = request.nextUrl.searchParams.get('role_type')
 
-    if (!userId || !facilityId || !companyId) {
+    if (!userId || !facilityId || !companyId || !roleType) {
       return NextResponse.json(
-        { error: 'user_id, facility_id, and company_id query params are required' },
+        {
+          error:
+            'user_id, facility_id, company_id, and role_type query params are required',
+        },
         { status: 400 }
       )
+    }
+
+    if (!VALID_ROLE_TYPES.includes(roleType as FacilityAssignmentRoleType)) {
+      return NextResponse.json({ error: 'Invalid role_type' }, { status: 400 })
     }
 
     if (!isSystemAdmin(user.company_id) && user.company_id !== companyId) {
@@ -154,11 +176,12 @@ export async function DELETE(request: NextRequest) {
 
     const adminClient = createAdminClient()
     const { error } = await adminClient
-      .from('facility_manager_assignments')
+      .from('facility_qa_assignments')
       .delete()
       .eq('user_id', userId)
       .eq('facility_id', facilityId)
       .eq('company_id', companyId)
+      .eq('role_type', roleType)
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true })

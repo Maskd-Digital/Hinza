@@ -11,6 +11,17 @@ interface FacilitiesListPageProps {
   userPermissions: Permission[]
 }
 
+interface UserOption {
+  id: string
+  full_name: string | null
+  email: string | null
+  roles?: Array<{ id: string; name: string }>
+}
+
+function roleNameIncludes(roleName: string | undefined, value: string): boolean {
+  return (roleName ?? '').toLowerCase().includes(value)
+}
+
 export default function FacilitiesListPage({
   companyId,
   companyName,
@@ -24,6 +35,9 @@ export default function FacilitiesListPage({
   const [editingFacility, setEditingFacility] = useState<Facility | null>(null)
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [users, setUsers] = useState<UserOption[]>([])
+  const [selectedFacilityManagerIds, setSelectedFacilityManagerIds] = useState<string[]>([])
+  const [selectedQaExecutiveIds, setSelectedQaExecutiveIds] = useState<string[]>([])
 
   const [formData, setFormData] = useState({
     name: '',
@@ -40,6 +54,8 @@ export default function FacilitiesListPage({
   const canCreate = hasPermission(userPermissions, 'facilities:create')
   const canUpdate = hasPermission(userPermissions, 'facilities:update')
   const canDelete = hasPermission(userPermissions, 'facilities:delete')
+  const canAssignFacilityManagers = hasPermission(userPermissions, 'facility_managers:assign')
+  const canAssignQa = hasPermission(userPermissions, 'department_qa:assign')
 
   useEffect(() => {
     fetchFacilities()
@@ -77,6 +93,8 @@ export default function FacilitiesListPage({
     setFormError(null)
     setEditingFacility(null)
     setShowAddModal(false)
+    setSelectedFacilityManagerIds([])
+    setSelectedQaExecutiveIds([])
   }
 
   const handleEdit = (facility: Facility) => {
@@ -123,6 +141,55 @@ export default function FacilitiesListPage({
       if (!response.ok) {
         const data = await response.json()
         throw new Error(data.error || 'Failed to save facility')
+      }
+
+      const savedFacility = await response.json()
+
+      if (!editingFacility && savedFacility?.id) {
+        const assignmentRequests: Array<Promise<Response>> = []
+
+        if (canAssignFacilityManagers && selectedFacilityManagerIds.length > 0) {
+          selectedFacilityManagerIds.forEach((userId) => {
+            assignmentRequests.push(
+              fetch('/api/facility-qa-assignments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  user_id: userId,
+                  facility_id: savedFacility.id,
+                  company_id: companyId,
+                  role_type: 'facility_manager',
+                }),
+              })
+            )
+          })
+        }
+
+        if (canAssignQa && selectedQaExecutiveIds.length > 0) {
+          selectedQaExecutiveIds.forEach((userId) => {
+            assignmentRequests.push(
+              fetch('/api/facility-qa-assignments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  user_id: userId,
+                  facility_id: savedFacility.id,
+                  company_id: companyId,
+                  role_type: 'qa_executive',
+                }),
+              })
+            )
+          })
+        }
+
+        if (assignmentRequests.length > 0) {
+          const assignmentResponses = await Promise.all(assignmentRequests)
+          const failedAssignment = assignmentResponses.find((res) => !res.ok)
+          if (failedAssignment) {
+            const data = await failedAssignment.json().catch(() => ({}))
+            throw new Error(data.error || 'Facility created but assignment failed')
+          }
+        }
       }
 
       await fetchFacilities()
@@ -184,6 +251,41 @@ export default function FacilitiesListPage({
   const activeFacilities = filteredFacilities.filter((f) => f.is_active)
   const inactiveFacilities = filteredFacilities.filter((f) => !f.is_active)
 
+  const loadUsersForAssignments = async () => {
+    if (!canAssignFacilityManagers && !canAssignQa) return
+    try {
+      const response = await fetch(`/api/users?company_id=${companyId}`)
+      if (!response.ok) return
+      const data = await response.json()
+      setUsers(Array.isArray(data) ? data : [])
+    } catch {
+      setUsers([])
+    }
+  }
+
+  const toggleSelection = (
+    userId: string,
+    selected: string[],
+    setSelected: React.Dispatch<React.SetStateAction<string[]>>
+  ) => {
+    setSelected(
+      selected.includes(userId)
+        ? selected.filter((id) => id !== userId)
+        : [...selected, userId]
+    )
+  }
+
+  const facilityManagerUsers = users.filter((user) =>
+    user.roles?.some((role) => {
+      const roleName = role.name?.toLowerCase()
+      return roleNameIncludes(roleName, 'facility manager') || roleNameIncludes(roleName, 'facility admin')
+    })
+  )
+
+  const qaExecutiveUsers = users.filter((user) =>
+    user.roles?.some((role) => roleNameIncludes(role.name?.toLowerCase(), 'qa executive'))
+  )
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -196,7 +298,10 @@ export default function FacilitiesListPage({
         </div>
         {canCreate && (
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              loadUsersForAssignments()
+              setShowAddModal(true)
+            }}
             className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
           >
@@ -300,7 +405,10 @@ export default function FacilitiesListPage({
           </p>
           {canCreate && !searchTerm && (
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                loadUsersForAssignments()
+                setShowAddModal(true)
+              }}
               className="mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90"
               style={{ backgroundColor: '#0108B8', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)' }}
             >
@@ -623,6 +731,74 @@ export default function FacilitiesListPage({
                     placeholder="Facility email"
                   />
                 </div>
+
+                {!editingFacility && (canAssignQa || canAssignFacilityManagers) && (
+                  <div className="md:col-span-2 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {canAssignQa && (
+                      <div className="rounded-lg border border-gray-200 p-3">
+                        <p className="text-sm font-medium text-[#081636]">Assign QA Executives</p>
+                        <p className="text-xs text-[#081636] mt-1">
+                          Optional: assign QA executives while creating this facility.
+                        </p>
+                        <div className="mt-2 max-h-40 space-y-2 overflow-y-auto">
+                          {qaExecutiveUsers.length === 0 ? (
+                            <p className="text-xs text-gray-500">No QA Executive users found.</p>
+                          ) : (
+                            qaExecutiveUsers.map((user) => (
+                              <label key={user.id} className="flex items-center gap-2 text-sm text-[#081636]">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedQaExecutiveIds.includes(user.id)}
+                                  onChange={() =>
+                                    toggleSelection(
+                                      user.id,
+                                      selectedQaExecutiveIds,
+                                      setSelectedQaExecutiveIds
+                                    )
+                                  }
+                                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span>{user.full_name || user.email || user.id}</span>
+                              </label>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {canAssignFacilityManagers && (
+                      <div className="rounded-lg border border-gray-200 p-3">
+                        <p className="text-sm font-medium text-[#081636]">Assign Facility Managers</p>
+                        <p className="text-xs text-[#081636] mt-1">
+                          Optional: assign facility managers while creating this facility.
+                        </p>
+                        <div className="mt-2 max-h-40 space-y-2 overflow-y-auto">
+                          {facilityManagerUsers.length === 0 ? (
+                            <p className="text-xs text-gray-500">No Facility Manager users found.</p>
+                          ) : (
+                            facilityManagerUsers.map((user) => (
+                              <label key={user.id} className="flex items-center gap-2 text-sm text-[#081636]">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedFacilityManagerIds.includes(user.id)}
+                                  onChange={() =>
+                                    toggleSelection(
+                                      user.id,
+                                      selectedFacilityManagerIds,
+                                      setSelectedFacilityManagerIds
+                                    )
+                                  }
+                                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span>{user.full_name || user.email || user.id}</span>
+                              </label>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 pt-4">

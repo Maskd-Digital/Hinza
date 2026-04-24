@@ -187,10 +187,11 @@ export async function insertNotificationsForFacilityManagersAtFacility(
   title: string
 ): Promise<void> {
   const { data: rows } = await adminClient
-    .from('facility_manager_assignments')
+    .from('facility_qa_assignments')
     .select('user_id')
     .eq('company_id', companyId)
     .eq('facility_id', facilityId)
+    .eq('role_type', 'facility_manager')
 
   const recipientIds = [...new Set((rows || []).map((r) => r.user_id as string))]
   if (recipientIds.length === 0) return

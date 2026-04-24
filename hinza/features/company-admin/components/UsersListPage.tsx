@@ -12,15 +12,22 @@ interface User {
   roles?: Array<{ id: string; name: string }>
 }
 
+interface RoleOption {
+  id: string
+  name: string
+}
+
 interface UsersListPageProps {
   companyId: string
   canCreateUsers: boolean
+  canUpdateUsers: boolean
   canDeleteUsers: boolean
 }
 
 export default function UsersListPage({
   companyId,
   canCreateUsers,
+  canUpdateUsers,
   canDeleteUsers,
 }: UsersListPageProps) {
   const router = useRouter()
@@ -30,6 +37,12 @@ export default function UsersListPage({
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [isEditRolesModalOpen, setIsEditRolesModalOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [roleOptions, setRoleOptions] = useState<RoleOption[]>([])
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([])
+  const [rolesLoading, setRolesLoading] = useState(false)
+  const [updatingRoles, setUpdatingRoles] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -103,6 +116,61 @@ export default function UsersListPage({
     } catch (err) {
       console.error('Error deleting user:', err)
       setError(err instanceof Error ? err.message : 'Failed to delete user')
+    }
+  }
+
+  const handleOpenEditRoles = async (user: User) => {
+    setEditingUser(user)
+    setSelectedRoleIds(user.roles?.map((role) => role.id) || [])
+    setRolesLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`/api/roles?company_id=${companyId}`)
+      if (!response.ok) {
+        throw new Error('Failed to load roles')
+      }
+      const data = await response.json()
+      setRoleOptions(Array.isArray(data) ? data : [])
+      setIsEditRolesModalOpen(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load roles')
+    } finally {
+      setRolesLoading(false)
+    }
+  }
+
+  const toggleRoleSelection = (roleId: string) => {
+    setSelectedRoleIds((prev) =>
+      prev.includes(roleId)
+        ? prev.filter((id) => id !== roleId)
+        : [...prev, roleId]
+    )
+  }
+
+  const handleUpdateRoles = async () => {
+    if (!editingUser) return
+    setUpdatingRoles(true)
+    try {
+      const response = await fetch(`/api/users/${editingUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role_ids: selectedRoleIds }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to update roles')
+      }
+
+      setIsEditRolesModalOpen(false)
+      setEditingUser(null)
+      setRoleOptions([])
+      setSelectedRoleIds([])
+      fetchUsers()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update roles')
+    } finally {
+      setUpdatingRoles(false)
     }
   }
 
@@ -334,6 +402,15 @@ export default function UsersListPage({
                         >
                           {user.is_active ? 'Deactivate' : 'Activate'}
                         </button>
+                        {canUpdateUsers && (
+                          <button
+                            onClick={() => handleOpenEditRoles(user)}
+                            disabled={rolesLoading}
+                            className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+                          >
+                            Edit Roles
+                          </button>
+                        )}
                         {canDeleteUsers && (
                           <button
                             onClick={() =>
@@ -373,6 +450,57 @@ export default function UsersListPage({
           router.refresh()
         }}
       />
+
+      {/* Edit Roles Modal */}
+      {isEditRolesModalOpen && editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-xl bg-white p-6">
+            <h3 className="text-lg font-semibold text-[#081636]">Edit User Roles</h3>
+            <p className="mt-1 text-sm text-[#081636]">
+              {editingUser.full_name || editingUser.email || 'User'}
+            </p>
+
+            <div className="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3">
+              {roleOptions.length === 0 ? (
+                <p className="text-sm text-[#081636]">No roles found for this company.</p>
+              ) : (
+                roleOptions.map((role) => (
+                  <label key={role.id} className="flex items-center gap-2 text-sm text-[#081636]">
+                    <input
+                      type="checkbox"
+                      checked={selectedRoleIds.includes(role.id)}
+                      onChange={() => toggleRoleSelection(role.id)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>{role.name}</span>
+                  </label>
+                ))
+              )}
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setIsEditRolesModalOpen(false)
+                  setEditingUser(null)
+                  setRoleOptions([])
+                  setSelectedRoleIds([])
+                }}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-[#081636] hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateRoles}
+                disabled={updatingRoles}
+                className="rounded-lg bg-[#0108B8] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+              >
+                {updatingRoles ? 'Saving...' : 'Save Roles'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

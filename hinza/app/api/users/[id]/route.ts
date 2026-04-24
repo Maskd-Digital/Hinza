@@ -66,12 +66,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const { id } = await params
   
-  // Verify user is authenticated first
-  const supabase = await createClient()
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  
-  if (!authUser) {
+  const sessionUser = await getUserWithRoles()
+  if (!sessionUser) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!hasPermission(sessionUser.permissions, 'users:update')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   
   // Use admin client to bypass RLS
@@ -80,6 +81,20 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const body = await request.json()
     const { full_name, email, is_active, role_ids } = body
+
+    const { data: targetUser, error: targetUserError } = await adminClient
+      .from('users')
+      .select('id, company_id')
+      .eq('id', id)
+      .single()
+
+    if (targetUserError || !targetUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    if (!isSystemAdmin(sessionUser.company_id) && sessionUser.company_id !== targetUser.company_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     
     // Update user data
     const updateData: Record<string, unknown> = {}
@@ -100,6 +115,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     
     // Update roles if provided
     if (role_ids !== undefined) {
+      if (id === sessionUser.id) {
+        return NextResponse.json(
+          { error: 'You cannot update your own roles' },
+          { status: 400 }
+        )
+      }
+
       // Remove existing roles
       await adminClient.from('user_roles').delete().eq('user_id', id)
       

@@ -50,6 +50,7 @@ export default async function UsersPage({ params }: UsersPageProps) {
       <UsersListPage 
         companyId={companyId} 
         canCreateUsers={hasPermission(user.permissions, 'users:create')}
+        canUpdateUsers={hasPermission(user.permissions, 'users:update')}
         canDeleteUsers={hasPermission(user.permissions, 'users:delete')}
       />
     </CompanyAdminLayout>
