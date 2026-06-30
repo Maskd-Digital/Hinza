@@ -12,6 +12,7 @@ interface QAManagerSidebarProps {
   companyName: string
   roleLabel?: string
   permissions?: Permission[]
+  isOperationsManager?: boolean
 }
 
 export default function QAManagerSidebar({
@@ -19,11 +20,13 @@ export default function QAManagerSidebar({
   companyName,
   roleLabel = 'QA Manager',
   permissions = [],
+  isOperationsManager = false,
 }: QAManagerSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
-  const canAssignDepartmentQa = hasPermission(permissions, 'department_qa:assign')
+  const canAssignDepartmentQa =
+    isOperationsManager || hasPermission(permissions, 'department_qa:assign')
 
   const basePath = `/qa-manager/${companyId}`
   const isActive = (path: string) =>
@@ -70,7 +73,9 @@ export default function QAManagerSidebar({
             <Link
               href={basePath}
               className={`flex items-center gap-3 py-2 text-sm font-medium transition-colors ${
-                isActive(basePath) && !pathname.includes('/complaints')
+                isActive(basePath) &&
+                !pathname.includes('/complaints') &&
+                !pathname.includes('/department-qa')
                   ? '-ml-4 rounded-r-lg bg-white pl-4 pr-3 text-[#081636] shadow-[inset_0_4px_6px_-1px_rgba(1,8,184,0.25)]'
                   : 'rounded-lg px-3 text-white hover:bg-white/10'
               }`}
@@ -137,7 +142,7 @@ export default function QAManagerSidebar({
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                Department QA
+                Department QA assignments
               </Link>
             )}
           </div>

@@ -6,6 +6,7 @@ import Link from 'next/link'
 interface QAManagerDashboardProps {
   companyId: string
   companyName: string
+  isOperationsManager?: boolean
 }
 
 interface ComplaintStats {
@@ -27,6 +28,7 @@ interface ComplaintSummary {
 export default function QAManagerDashboard({
   companyId,
   companyName,
+  isOperationsManager = false,
 }: QAManagerDashboardProps) {
   const [stats, setStats] = useState<ComplaintStats>({
     total: 0,
@@ -81,11 +83,38 @@ export default function QAManagerDashboard({
   return (
     <div className="min-h-full bg-[#EFF4FF] p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#081636]">QA Manager Dashboard</h1>
+        <h1 className="text-2xl font-bold text-[#081636]">
+          {isOperationsManager ? 'Operations Manager Dashboard' : 'QA Manager Dashboard'}
+        </h1>
         <p className="text-sm text-[#081636]">
-          Complaints overview for {companyName}
+          {isOperationsManager
+            ? `Company-wide oversight and department QA staffing for ${companyName}`
+            : `Complaints overview for ${companyName}`}
         </p>
       </div>
+
+      {isOperationsManager && (
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Link
+            href={`/qa-manager/${companyId}/department-qa`}
+            className="rounded-lg bg-white p-5 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)] transition hover:opacity-90"
+          >
+            <p className="text-sm font-semibold text-[#081636]">Department QA assignments</p>
+            <p className="mt-1 text-sm text-[#081636]">
+              Assign QA Managers and QA Executives to departments.
+            </p>
+          </Link>
+          <Link
+            href={`/qa-manager/${companyId}/complaints`}
+            className="rounded-lg bg-white p-5 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)] transition hover:opacity-90"
+          >
+            <p className="text-sm font-semibold text-[#081636]">View all complaints</p>
+            <p className="mt-1 text-sm text-[#081636]">
+              Company-wide complaint queue and status overview.
+            </p>
+          </Link>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex h-64 items-center justify-center">

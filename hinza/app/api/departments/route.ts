@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
 import type { UserWithRoles } from '@/types/auth'
 
 function canReadDepartmentsList(user: UserWithRoles): boolean {
   return (
     hasPermission(user.permissions, 'departments:read') ||
     hasPermission(user.permissions, 'complaints:create') ||
-    hasPermission(user.permissions, 'department_qa:assign')
+    hasPermission(user.permissions, 'department_qa:assign') ||
+    isOperationsManager(user)
   )
 }
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
-import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
+import { isSystemAdmin } from '@/lib/auth/permissions'
+import { canManageDepartmentQaAssignments } from '@/lib/auth/department-qa-assign'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    if (!hasPermission(user.permissions, 'department_qa:assign')) {
+    if (!canManageDepartmentQaAssignments(user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
     const user = await getUserWithRoles()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    if (!hasPermission(user.permissions, 'department_qa:assign')) {
+    if (!canManageDepartmentQaAssignments(user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -114,7 +115,7 @@ export async function DELETE(request: NextRequest) {
     const user = await getUserWithRoles()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    if (!hasPermission(user.permissions, 'department_qa:assign')) {
+    if (!canManageDepartmentQaAssignments(user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

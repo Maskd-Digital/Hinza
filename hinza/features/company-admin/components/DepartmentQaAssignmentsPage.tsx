@@ -31,6 +31,7 @@ interface DepartmentQaAssignmentsPageProps {
   companyId: string
   companyName: string
   userPermissions: Permission[]
+  canAssign?: boolean
 }
 
 function isQaDeptUser(roleName: string | undefined): boolean {
@@ -76,8 +77,10 @@ export default function DepartmentQaAssignmentsPage({
   companyId,
   companyName,
   userPermissions,
+  canAssign: canAssignProp,
 }: DepartmentQaAssignmentsPageProps) {
-  const canAssign = hasPermission(userPermissions, 'department_qa:assign')
+  const canAssign =
+    canAssignProp ?? hasPermission(userPermissions, 'department_qa:assign')
 
   const [departments, setDepartments] = useState<DeptRow[]>([])
   const [users, setUsers] = useState<UserRow[]>([])

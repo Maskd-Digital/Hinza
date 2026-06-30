@@ -9,6 +9,7 @@ interface QAManagerLayoutProps {
   companyName: string
   roleLabel?: string
   permissions?: Permission[]
+  isOperationsManager?: boolean
 }
 
 export default function QAManagerLayout({
@@ -17,6 +18,7 @@ export default function QAManagerLayout({
   companyName,
   roleLabel = 'QA Manager',
   permissions = [],
+  isOperationsManager = false,
 }: QAManagerLayoutProps) {
   return (
     <div className="flex h-screen bg-gray-50">
@@ -25,6 +27,7 @@ export default function QAManagerLayout({
         companyName={companyName}
         roleLabel={roleLabel}
         permissions={permissions}
+        isOperationsManager={isOperationsManager}
       />
       <main className="flex-1 overflow-auto">{children}</main>
     </div>

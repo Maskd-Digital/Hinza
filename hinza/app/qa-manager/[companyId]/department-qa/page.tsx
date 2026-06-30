@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { getCompanyById } from '@/lib/api/companies'
-import { hasPermission } from '@/lib/auth/permissions'
 import { isOperationsManager } from '@/lib/auth/operations-manager'
+import { canManageDepartmentQaAssignments } from '@/lib/auth/department-qa-assign'
 import DepartmentQaAssignmentsPage from '@/features/company-admin/components/DepartmentQaAssignmentsPage'
 
 interface PageProps {
@@ -20,7 +20,7 @@ export default async function OperationsManagerDepartmentQaPage({ params }: Page
     redirect('/unauthorized')
   }
 
-  if (!hasPermission(user.permissions, 'department_qa:assign')) {
+  if (!canManageDepartmentQaAssignments(user)) {
     redirect('/unauthorized')
   }
 
@@ -33,6 +33,7 @@ export default async function OperationsManagerDepartmentQaPage({ params }: Page
         companyId={companyId}
         companyName={company.name}
         userPermissions={user.permissions}
+        canAssign
       />
     </div>
   )
