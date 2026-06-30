@@ -13,7 +13,12 @@ interface UserRow {
   id: string
   full_name: string | null
   email: string | null
-  roles?: Array<{ name: string }>
+  roles?: Array<{ id: string; name: string }>
+}
+
+interface RoleRow {
+  id: string
+  name: string
 }
 
 interface AssignmentRow {
@@ -31,6 +36,40 @@ interface DepartmentQaAssignmentsPageProps {
 function isQaDeptUser(roleName: string | undefined): boolean {
   const n = roleName?.toLowerCase() ?? ''
   return n.includes('qa manager') || n.includes('qa executive')
+}
+
+function getQaRoleLabel(user: UserRow | undefined): string {
+  const roleName = user?.roles?.find((r) => isQaDeptUser(r.name))?.name?.toLowerCase() ?? ''
+  if (roleName.includes('qa executive')) return 'Executive'
+  if (roleName.includes('qa manager')) return 'Manager'
+  return '—'
+}
+
+async function loadQaAssignableUsers(companyId: string): Promise<UserRow[]> {
+  const rolesRes = await fetch(`/api/roles?company_id=${companyId}`)
+  if (!rolesRes.ok) throw new Error('Failed to load roles')
+
+  const rolesData: RoleRow[] = await rolesRes.json()
+  const qaRoles = (rolesData || []).filter((role) => {
+    const name = role.name.trim().toLowerCase()
+    return name === 'qa manager' || name === 'qa executive'
+  })
+
+  if (qaRoles.length === 0) return []
+
+  const userResponses = await Promise.all(
+    qaRoles.map((role) => fetch(`/api/users?company_id=${companyId}&role_id=${role.id}`))
+  )
+
+  if (userResponses.some((res) => !res.ok)) {
+    throw new Error('Failed to load QA users')
+  }
+
+  const usersByRole = await Promise.all(userResponses.map((res) => res.json()))
+  const merged = usersByRole.flat().filter(Boolean) as UserRow[]
+  const unique = new Map<string, UserRow>()
+  merged.forEach((user) => unique.set(user.id, user))
+  return [...unique.values()]
 }
 
 export default function DepartmentQaAssignmentsPage({
@@ -53,15 +92,15 @@ export default function DepartmentQaAssignmentsPage({
     setLoading(true)
     setError(null)
     try {
-      const [depRes, userRes, asgRes] = await Promise.all([
+      const [depRes, users, asgRes] = await Promise.all([
         fetch(`/api/departments?company_id=${companyId}`),
-        fetch(`/api/users?company_id=${companyId}`),
+        loadQaAssignableUsers(companyId),
         fetch(`/api/department-qa-assignments?company_id=${companyId}`),
       ])
-      if (!depRes.ok || !userRes.ok || !asgRes.ok) throw new Error('Failed to load data')
-      const [dep, us, asg] = await Promise.all([depRes.json(), userRes.json(), asgRes.json()])
+      if (!depRes.ok || !asgRes.ok) throw new Error('Failed to load data')
+      const [dep, asg] = await Promise.all([depRes.json(), asgRes.json()])
       setDepartments(Array.isArray(dep) ? dep : [])
-      setUsers(Array.isArray(us) ? us : [])
+      setUsers(users)
       setAssignments(Array.isArray(asg) ? asg : [])
       if (!departmentId && Array.isArray(dep) && dep[0]?.id) setDepartmentId(dep[0].id)
     } catch (e) {
@@ -123,12 +162,7 @@ export default function DepartmentQaAssignmentsPage({
     await load()
   }
 
-  const qaUsers = useMemo(
-    () => users.filter((u) => u.roles?.some((r) => isQaDeptUser(r.name))),
-    [users]
-  )
-
-  const userOptions = qaUsers.length > 0 ? qaUsers : users
+  const userOptions = users
 
   if (!canAssign) {
     return <p className="text-sm text-gray-600">You do not have permission to manage department QA assignments.</p>
@@ -154,13 +188,13 @@ export default function DepartmentQaAssignmentsPage({
             <select
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black"
               required
             >
               <option value="">Select user</option>
               {userOptions.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {userLabel(u)}
+                  {userLabel(u)} ({getQaRoleLabel(u)})
                 </option>
               ))}
             </select>
@@ -170,7 +204,7 @@ export default function DepartmentQaAssignmentsPage({
             <select
               value={departmentId}
               onChange={(e) => setDepartmentId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black"
               required
             >
               {departments.map((d) => (
@@ -202,6 +236,7 @@ export default function DepartmentQaAssignmentsPage({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left font-semibold text-[#081636]">User</th>
+                <th className="px-4 py-3 text-left font-semibold text-[#081636]">Role</th>
                 <th className="px-4 py-3 text-left font-semibold text-[#081636]">Department</th>
                 <th className="px-4 py-3 text-right font-semibold text-[#081636]"> </th>
               </tr>
@@ -212,6 +247,7 @@ export default function DepartmentQaAssignmentsPage({
                 return (
                   <tr key={`${a.user_id}-${a.department_id}`}>
                     <td className="px-4 py-3 text-[#081636]">{u ? userLabel(u) : a.user_id}</td>
+                    <td className="px-4 py-3 text-gray-700">{getQaRoleLabel(u)}</td>
                     <td className="px-4 py-3 text-gray-700">
                       {deptNameById.get(a.department_id) ?? a.department_id}
                     </td>

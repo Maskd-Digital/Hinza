@@ -54,15 +54,12 @@ export default function FacilityManagerAssignmentsPage({
     return 'Manager'
   }
 
-  const loadUsersForRoleType = async (selectedRoleType: AssignmentRoleType): Promise<UserRow[]> => {
+  const loadAssignableUsers = async (): Promise<UserRow[]> => {
     const rolesRes = await fetch(`/api/roles?company_id=${companyId}`)
     if (!rolesRes.ok) throw new Error('Failed to load roles')
 
     const rolesData: RoleRow[] = await rolesRes.json()
-    const targetRoleNames =
-      selectedRoleType === 'facility_manager'
-        ? ['facility manager', 'facility admin']
-        : ['qa executive']
+    const targetRoleNames = ['facility manager', 'facility admin', 'qa executive']
 
     const matchingRoles = (rolesData || []).filter((role) =>
       targetRoleNames.includes(role.name.trim().toLowerCase())
@@ -95,7 +92,7 @@ export default function FacilityManagerAssignmentsPage({
     try {
       const [facRes, users, asgRes] = await Promise.all([
         fetch(`/api/facilities?company_id=${companyId}`),
-        loadUsersForRoleType(roleType),
+        loadAssignableUsers(),
         fetch(`/api/facility-qa-assignments?company_id=${companyId}`),
       ])
       if (!facRes.ok || !asgRes.ok) throw new Error('Failed to load data')
@@ -118,7 +115,7 @@ export default function FacilityManagerAssignmentsPage({
 
   useEffect(() => {
     load()
-  }, [companyId, roleType])
+  }, [companyId])
 
   const facilityNameById = useMemo(() => {
     const m = new Map<string, string>()

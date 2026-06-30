@@ -48,7 +48,12 @@ export default async function QAManagerLayoutWrapper({
   const roleLabel = isOperationsManager(user) ? 'Operations Manager' : 'QA Manager'
 
   return (
-    <QAManagerLayout companyId={companyId} companyName={company.name} roleLabel={roleLabel}>
+    <QAManagerLayout
+      companyId={companyId}
+      companyName={company.name}
+      roleLabel={roleLabel}
+      permissions={user.permissions}
+    >
       {children}
     </QAManagerLayout>
   )
