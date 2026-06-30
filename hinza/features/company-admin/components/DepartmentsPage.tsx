@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import type { Permission } from '@/types/auth'
-import { hasPermission } from '@/lib/auth/permissions'
+import { hasAnyPermission, hasPermission } from '@/lib/auth/permissions'
 import type { Department } from '@/types/department'
 
 interface DepartmentsPageProps {
@@ -17,6 +17,10 @@ export default function DepartmentsPage({
   userPermissions,
 }: DepartmentsPageProps) {
   const canRead = hasPermission(userPermissions, 'departments:read')
+  const canCreate = hasAnyPermission(userPermissions, [
+    'departments:create',
+    'departments:manage',
+  ])
   const canManage = hasPermission(userPermissions, 'departments:manage')
 
   const [departments, setDepartments] = useState<Department[]>([])
@@ -96,7 +100,7 @@ export default function DepartmentsPage({
         </p>
       </div>
 
-      {canManage && (
+      {canCreate && (
         <form
           onSubmit={handleCreate}
           className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"

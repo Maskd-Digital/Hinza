@@ -9,6 +9,7 @@ WHERE r.name ILIKE 'Company Admin'
   AND p.name IN (
     'complaints:read_company_wide',
     'departments:read',
+    'departments:create',
     'departments:manage',
     'department_qa:assign'
   )

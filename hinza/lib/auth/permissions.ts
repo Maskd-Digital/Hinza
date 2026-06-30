@@ -30,6 +30,7 @@ export type PermissionName =
   | 'complaints:resolve'
   | 'complaints:read_company_wide'
   | 'departments:read'
+  | 'departments:create'
   | 'departments:manage'
   | 'department_qa:assign'
   | 'facilities:read'

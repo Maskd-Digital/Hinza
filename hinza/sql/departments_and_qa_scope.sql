@@ -17,7 +17,11 @@ INSERT INTO public.permissions (name, description) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO public.permissions (name, description) VALUES
-('departments:manage', 'Create, update, and delete departments')
+('departments:create', 'Create departments for a company')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO public.permissions (name, description) VALUES
+('departments:manage', 'Update and delete departments')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO public.permissions (name, description) VALUES
@@ -31,6 +35,7 @@ FROM public.permissions p
 WHERE p.name IN (
   'complaints:read_company_wide',
   'departments:read',
+  'departments:create',
   'departments:manage',
   'department_qa:assign'
 )

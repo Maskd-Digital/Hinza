@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
-import { hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
+import { hasAnyPermission, hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
 import { isOperationsManager } from '@/lib/auth/operations-manager'
 import type { UserWithRoles } from '@/types/auth'
 
@@ -58,7 +58,9 @@ export async function POST(request: NextRequest) {
     const user = await getUserWithRoles()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    if (!hasPermission(user.permissions, 'departments:manage')) {
+    if (
+      !hasAnyPermission(user.permissions, ['departments:create', 'departments:manage'])
+    ) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
