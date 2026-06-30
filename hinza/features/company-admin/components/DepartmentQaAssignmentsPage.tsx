@@ -1,31 +1,33 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import type { Permission } from '@/types/auth'
 import { hasPermission } from '@/lib/auth/permissions'
 
 interface DeptRow {
   id: string
   name: string
+  code?: string | null
 }
 
-interface UserRow {
+interface UserOption {
   id: string
   full_name: string | null
   email: string | null
-  roles?: Array<{ id: string; name: string }>
-}
-
-interface RoleRow {
-  id: string
-  name: string
+  role_type: 'manager' | 'executive'
 }
 
 interface AssignmentRow {
   user_id: string
   department_id: string
   company_id: string
+  created_at?: string
+  user_name?: string
+  department_name?: string
+  role_type?: 'manager' | 'executive'
 }
+
+type AssignRoleType = 'manager' | 'executive'
 
 interface DepartmentQaAssignmentsPageProps {
   companyId: string
@@ -34,43 +36,13 @@ interface DepartmentQaAssignmentsPageProps {
   canAssign?: boolean
 }
 
-function isQaDeptUser(roleName: string | undefined): boolean {
-  const n = roleName?.toLowerCase() ?? ''
-  return n.includes('qa manager') || n.includes('qa executive')
+function userLabel(u: UserOption) {
+  return u.full_name || u.email || u.id
 }
 
-function getQaRoleLabel(user: UserRow | undefined): string {
-  const roleName = user?.roles?.find((r) => isQaDeptUser(r.name))?.name?.toLowerCase() ?? ''
-  if (roleName.includes('qa executive')) return 'Executive'
-  if (roleName.includes('qa manager')) return 'Manager'
-  return '—'
-}
-
-async function loadQaAssignableUsers(companyId: string): Promise<UserRow[]> {
-  const rolesRes = await fetch(`/api/roles?company_id=${companyId}`)
-  if (!rolesRes.ok) throw new Error('Failed to load roles')
-
-  const rolesData: RoleRow[] = await rolesRes.json()
-  const qaRoles = (rolesData || []).filter((role) => {
-    const name = role.name.trim().toLowerCase()
-    return name === 'qa manager' || name === 'qa executive'
-  })
-
-  if (qaRoles.length === 0) return []
-
-  const userResponses = await Promise.all(
-    qaRoles.map((role) => fetch(`/api/users?company_id=${companyId}&role_id=${role.id}`))
-  )
-
-  if (userResponses.some((res) => !res.ok)) {
-    throw new Error('Failed to load QA users')
-  }
-
-  const usersByRole = await Promise.all(userResponses.map((res) => res.json()))
-  const merged = usersByRole.flat().filter(Boolean) as UserRow[]
-  const unique = new Map<string, UserRow>()
-  merged.forEach((user) => unique.set(user.id, user))
-  return [...unique.values()]
+function roleTypeLabel(roleType: AssignRoleType | string | undefined): string {
+  if (roleType === 'executive') return 'Executive'
+  return 'Manager'
 }
 
 export default function DepartmentQaAssignmentsPage({
@@ -83,29 +55,32 @@ export default function DepartmentQaAssignmentsPage({
     canAssignProp ?? hasPermission(userPermissions, 'department_qa:assign')
 
   const [departments, setDepartments] = useState<DeptRow[]>([])
-  const [users, setUsers] = useState<UserRow[]>([])
+  const [managers, setManagers] = useState<UserOption[]>([])
+  const [executives, setExecutives] = useState<UserOption[]>([])
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState('')
   const [departmentId, setDepartmentId] = useState('')
+  const [assignRoleType, setAssignRoleType] = useState<AssignRoleType>('manager')
   const [saving, setSaving] = useState(false)
 
   const load = async () => {
     setLoading(true)
     setError(null)
     try {
-      const [depRes, users, asgRes] = await Promise.all([
-        fetch(`/api/departments?company_id=${companyId}`),
-        loadQaAssignableUsers(companyId),
-        fetch(`/api/department-qa-assignments?company_id=${companyId}`),
-      ])
-      if (!depRes.ok || !asgRes.ok) throw new Error('Failed to load data')
-      const [dep, asg] = await Promise.all([depRes.json(), asgRes.json()])
-      setDepartments(Array.isArray(dep) ? dep : [])
-      setUsers(users)
-      setAssignments(Array.isArray(asg) ? asg : [])
-      if (!departmentId && Array.isArray(dep) && dep[0]?.id) setDepartmentId(dep[0].id)
+      const res = await fetch(`/api/department-qa/options?company_id=${companyId}`)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to load department QA data')
+      }
+      const data = await res.json()
+      const deptList = Array.isArray(data.departments) ? data.departments : []
+      setDepartments(deptList)
+      setManagers(Array.isArray(data.managers) ? data.managers : [])
+      setExecutives(Array.isArray(data.executives) ? data.executives : [])
+      setAssignments(Array.isArray(data.assignments) ? data.assignments : [])
+      if (!departmentId && deptList[0]?.id) setDepartmentId(deptList[0].id)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load')
     } finally {
@@ -117,13 +92,8 @@ export default function DepartmentQaAssignmentsPage({
     load()
   }, [companyId])
 
-  const deptNameById = useMemo(() => {
-    const m = new Map<string, string>()
-    departments.forEach((d) => m.set(d.id, d.name))
-    return m
-  }, [departments])
-
-  const userLabel = (u: UserRow) => u.full_name || u.email || u.id
+  const usersForRoleType =
+    assignRoleType === 'executive' ? executives : managers
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -141,6 +111,7 @@ export default function DepartmentQaAssignmentsPage({
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to assign')
+      setUserId('')
       await load()
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed')
@@ -165,10 +136,12 @@ export default function DepartmentQaAssignmentsPage({
     await load()
   }
 
-  const userOptions = users
-
   if (!canAssign) {
-    return <p className="text-sm text-gray-600">You do not have permission to manage department QA assignments.</p>
+    return (
+      <p className="text-sm text-gray-600">
+        You do not have permission to manage department QA assignments.
+      </p>
+    )
   }
 
   return (
@@ -176,8 +149,57 @@ export default function DepartmentQaAssignmentsPage({
       <div>
         <h1 className="text-2xl font-bold text-[#081636]">Department QA assignments</h1>
         <p className="mt-1 text-sm text-[#081636]">
-          {companyName} — assign QA Manager / QA Executive users to departments (queue scope).
+          {companyName} — assign QA Managers and QA Executives to departments from your database.
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <p className="text-sm font-medium text-[#081636]">QA Managers ({managers.length})</p>
+          {loading ? (
+            <p className="mt-2 text-sm text-gray-500">Loading…</p>
+          ) : managers.length === 0 ? (
+            <p className="mt-2 text-sm text-gray-500">No QA Manager users found.</p>
+          ) : (
+            <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-sm text-[#081636]">
+              {managers.map((u) => (
+                <li key={u.id}>{userLabel(u)}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <p className="text-sm font-medium text-[#081636]">QA Executives ({executives.length})</p>
+          {loading ? (
+            <p className="mt-2 text-sm text-gray-500">Loading…</p>
+          ) : executives.length === 0 ? (
+            <p className="mt-2 text-sm text-gray-500">No QA Executive users found.</p>
+          ) : (
+            <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-sm text-[#081636]">
+              {executives.map((u) => (
+                <li key={u.id}>{userLabel(u)}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <p className="text-sm font-medium text-[#081636]">Departments ({departments.length})</p>
+        {loading ? (
+          <p className="mt-2 text-sm text-gray-500">Loading…</p>
+        ) : departments.length === 0 ? (
+          <p className="mt-2 text-sm text-gray-500">No departments found in database.</p>
+        ) : (
+          <ul className="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-2 text-sm text-[#081636]">
+            {departments.map((d) => (
+              <li key={d.id}>
+                {d.name}
+                {d.code ? ` (${d.code})` : ''}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <form
@@ -185,7 +207,22 @@ export default function DepartmentQaAssignmentsPage({
         className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
       >
         <p className="text-sm font-medium text-[#081636]">New assignment</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div>
+            <label className="text-xs font-medium text-gray-600">Role</label>
+            <select
+              value={assignRoleType}
+              onChange={(e) => {
+                setAssignRoleType(e.target.value as AssignRoleType)
+                setUserId('')
+              }}
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black"
+              required
+            >
+              <option value="manager">Manager</option>
+              <option value="executive">Executive</option>
+            </select>
+          </div>
           <div>
             <label className="text-xs font-medium text-gray-600">User</label>
             <select
@@ -195,9 +232,9 @@ export default function DepartmentQaAssignmentsPage({
               required
             >
               <option value="">Select user</option>
-              {userOptions.map((u) => (
+              {usersForRoleType.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {userLabel(u)} ({getQaRoleLabel(u)})
+                  {userLabel(u)}
                 </option>
               ))}
             </select>
@@ -210,6 +247,7 @@ export default function DepartmentQaAssignmentsPage({
               className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black"
               required
             >
+              <option value="">Select department</option>
               {departments.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
@@ -220,7 +258,7 @@ export default function DepartmentQaAssignmentsPage({
         </div>
         <button
           type="submit"
-          disabled={saving || departments.length === 0}
+          disabled={saving || departments.length === 0 || usersForRoleType.length === 0}
           className="mt-4 rounded-lg bg-[#0108B8] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Assign'}
@@ -228,7 +266,7 @@ export default function DepartmentQaAssignmentsPage({
       </form>
 
       {loading ? (
-        <p className="text-sm text-gray-500">Loading…</p>
+        <p className="text-sm text-gray-500">Loading assignments…</p>
       ) : error ? (
         <p className="text-red-600">{error}</p>
       ) : assignments.length === 0 ? (
@@ -245,27 +283,24 @@ export default function DepartmentQaAssignmentsPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {assignments.map((a) => {
-                const u = users.find((x) => x.id === a.user_id)
-                return (
-                  <tr key={`${a.user_id}-${a.department_id}`}>
-                    <td className="px-4 py-3 text-[#081636]">{u ? userLabel(u) : a.user_id}</td>
-                    <td className="px-4 py-3 text-gray-700">{getQaRoleLabel(u)}</td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {deptNameById.get(a.department_id) ?? a.department_id}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleRemove(a.user_id, a.department_id)}
-                        className="text-sm font-medium text-red-600 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
+              {assignments.map((a) => (
+                <tr key={`${a.user_id}-${a.department_id}`}>
+                  <td className="px-4 py-3 text-[#081636]">{a.user_name ?? a.user_id}</td>
+                  <td className="px-4 py-3 text-gray-700">{roleTypeLabel(a.role_type)}</td>
+                  <td className="px-4 py-3 text-gray-700">
+                    {a.department_name ?? a.department_id}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(a.user_id, a.department_id)}
+                      className="text-sm font-medium text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
