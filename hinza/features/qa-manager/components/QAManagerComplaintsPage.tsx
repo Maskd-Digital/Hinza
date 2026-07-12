@@ -4,13 +4,12 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { Complaint } from '@/types/complaint'
 import { Permission } from '@/types/auth'
-import { hasPermission } from '@/lib/auth/permissions'
-import { formatFacilityName } from '@/lib/utils'
 
 interface QAManagerComplaintsPageProps {
   companyId: string
   companyName: string
   userPermissions: Permission[]
+  isOperationsManager?: boolean
 }
 
 interface CompanyUser {
@@ -20,25 +19,45 @@ interface CompanyUser {
   roles: Array<{ id: string; name: string }>
 }
 
+interface AssignedDepartment {
+  id: string
+  name: string
+  code: string | null
+}
+
 export default function QAManagerComplaintsPage({
   companyId,
   companyName,
-  userPermissions,
+  isOperationsManager = false,
 }: QAManagerComplaintsPageProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([])
   const [users, setUsers] = useState<CompanyUser[]>([])
+  const [assignedDepartments, setAssignedDepartments] = useState<AssignedDepartment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [assigning, setAssigning] = useState(false)
-
-  const canAssign = hasPermission(userPermissions, 'complaints:assign') || hasPermission(userPermissions, 'complaints:resolve')
 
   useEffect(() => {
     fetchComplaints()
     fetchUsers()
-  }, [companyId])
+    if (!isOperationsManager) {
+      fetchAssignedDepartments()
+    }
+  }, [companyId, isOperationsManager])
+
+  const fetchAssignedDepartments = async () => {
+    try {
+      const res = await fetch(
+        `/api/department-qa-assignments?company_id=${companyId}&mine=1`
+      )
+      if (!res.ok) return
+      const data = await res.json()
+      setAssignedDepartments(Array.isArray(data?.departments) ? data.departments : [])
+    } catch {
+      // ignore
+    }
+  }
 
   const fetchComplaints = async () => {
     setLoading(true)
@@ -66,41 +85,13 @@ export default function QAManagerComplaintsPage({
     }
   }
 
-  const qaExecutives = useMemo(() => {
-    return users.filter((u) =>
-      u.roles?.some((r) => r.name?.toLowerCase().includes('qa'))
-    )
-  }, [users])
-
-  const handleAssign = async (complaintId: string, assignedTo: string) => {
-    setAssigning(true)
-    try {
-      const res = await fetch(`/api/complaints/${complaintId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          assigned_to_id: assignedTo || null,
-          ...(assignedTo ? { status: 'assigned' } : {}),
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to assign')
-      }
-      await fetchComplaints()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to assign')
-    } finally {
-      setAssigning(false)
-    }
-  }
-
   const filteredComplaints = useMemo(() => {
     return complaints.filter((c) => {
       const matchSearch =
         !searchQuery ||
         c.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        c.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.departments?.name?.toLowerCase().includes(searchQuery.toLowerCase())
       const matchStatus =
         statusFilter === 'all' ||
         c.status?.toLowerCase() === statusFilter.toLowerCase()
@@ -146,14 +137,49 @@ export default function QAManagerComplaintsPage({
     return u?.full_name || u?.email || assignedToId
   }
 
+  const assignedDeptLabel =
+    assignedDepartments.length > 0
+      ? assignedDepartments.map((d) => d.name).join(', ')
+      : null
+
   return (
     <div className="min-h-full bg-[#EFF4FF] p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#081636]">Complaints</h1>
         <p className="text-sm text-[#081636]">
-          View, delegate, verify documents, and mark as done
+          {isOperationsManager
+            ? `Company-wide queue for ${companyName}`
+            : assignedDeptLabel
+              ? `Showing complaints for: ${assignedDeptLabel}`
+              : `View, delegate, verify documents, and mark as done`}
         </p>
       </div>
+
+      {!isOperationsManager && (
+        <div className="mb-6 rounded-lg bg-white p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+          <p className="text-sm font-semibold text-[#081636]">Your assigned departments</p>
+          {assignedDepartments.length === 0 ? (
+            <p className="mt-2 text-sm text-[#081636]">
+              No departments assigned. You will not see any complaints until an Operations
+              Manager assigns you to a department.
+            </p>
+          ) : (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {assignedDepartments.map((d) => (
+                <span
+                  key={d.id}
+                  className="inline-flex items-center rounded-md bg-[#EFF4FF] px-3 py-1.5 text-sm font-medium text-[#0108B8]"
+                >
+                  {d.name}
+                  {d.code ? (
+                    <span className="ml-1.5 text-xs text-[#081636]/70">({d.code})</span>
+                  ) : null}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
         <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
@@ -182,7 +208,7 @@ export default function QAManagerComplaintsPage({
         <div className="relative flex-1">
           <input
             type="text"
-            placeholder="Search complaints..."
+            placeholder="Search complaints or department..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-[#081636] shadow-[inset_0_4px_6px_-1px_rgba(1,8,184,0.25)] placeholder:text-[#081636] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
@@ -219,7 +245,11 @@ export default function QAManagerComplaintsPage({
         </div>
       ) : filteredComplaints.length === 0 ? (
         <div className="rounded-lg bg-[#FFFFFF] py-12 text-center shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
-          <p className="text-[#081636]">No complaints match your filters.</p>
+          <p className="text-[#081636]">
+            {!isOperationsManager && assignedDepartments.length === 0
+              ? 'No department assignments — no complaints to show.'
+              : 'No complaints match your filters.'}
+          </p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg bg-[#FFFFFF] shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
@@ -229,6 +259,9 @@ export default function QAManagerComplaintsPage({
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Complaint
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
+                    Department
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#081636]">
                     Type
@@ -261,6 +294,9 @@ export default function QAManagerComplaintsPage({
                           </p>
                         )}
                       </div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#081636]">
+                      {c.departments?.name ?? '—'}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
                       {c.equipment_id ? (
@@ -301,7 +337,6 @@ export default function QAManagerComplaintsPage({
           </div>
         </div>
       )}
-
     </div>
   )
 }

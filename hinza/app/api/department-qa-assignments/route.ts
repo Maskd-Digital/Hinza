@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { isSystemAdmin } from '@/lib/auth/permissions'
 import { canManageDepartmentQaAssignments } from '@/lib/auth/department-qa-assign'
+import { isQAManager } from '@/lib/auth/qa-manager'
+import { isQAExecutive } from '@/lib/auth/qa-executive'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
+import { getAssignedDepartmentsForUser } from '@/lib/api/department-scope'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,6 +14,7 @@ export async function GET(request: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const companyId = request.nextUrl.searchParams.get('company_id')
+    const mine = request.nextUrl.searchParams.get('mine') === '1'
     if (!companyId) {
       return NextResponse.json({ error: 'company_id is required' }, { status: 400 })
     }
@@ -18,11 +23,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const adminClient = createAdminClient()
+
+    // QA Managers / Executives can read their own assigned departments
+    if (mine) {
+      const canReadOwn =
+        isQAManager(user) ||
+        isQAExecutive(user) ||
+        isOperationsManager(user) ||
+        canManageDepartmentQaAssignments(user)
+      if (!canReadOwn) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+      const departments = await getAssignedDepartmentsForUser(
+        adminClient,
+        user.id,
+        companyId
+      )
+      return NextResponse.json({ departments })
+    }
+
     if (!canManageDepartmentQaAssignments(user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const adminClient = createAdminClient()
     const { data, error } = await adminClient
       .from('department_qa_assignments')
       .select('user_id, department_id, company_id, created_at')

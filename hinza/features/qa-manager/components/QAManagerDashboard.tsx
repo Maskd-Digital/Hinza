@@ -23,6 +23,13 @@ interface ComplaintSummary {
   status: string
   priority: string | null
   created_at: string
+  departments?: { id: string; name: string; code?: string | null } | null
+}
+
+interface AssignedDepartment {
+  id: string
+  name: string
+  code: string | null
 }
 
 export default function QAManagerDashboard({
@@ -38,13 +45,24 @@ export default function QAManagerDashboard({
     closed: 0,
   })
   const [recent, setRecent] = useState<ComplaintSummary[]>([])
+  const [assignedDepartments, setAssignedDepartments] = useState<AssignedDepartment[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`/api/complaints?company_id=${companyId}&qa_workspace=1`)
-      .then((res) => res.json())
-      .then((data: ComplaintSummary[]) => {
-        const list = Array.isArray(data) ? data : []
+    const load = async () => {
+      setLoading(true)
+      try {
+        const [complaintsRes, deptsRes] = await Promise.all([
+          fetch(`/api/complaints?company_id=${companyId}&qa_workspace=1`),
+          !isOperationsManager
+            ? fetch(
+                `/api/department-qa-assignments?company_id=${companyId}&mine=1`
+              )
+            : Promise.resolve(null),
+        ])
+
+        const data = await complaintsRes.json()
+        const list: ComplaintSummary[] = Array.isArray(data) ? data : []
         setRecent(list.slice(0, 5))
         setStats({
           total: list.length,
@@ -53,10 +71,21 @@ export default function QAManagerDashboard({
           resolved: list.filter((c) => c.status?.toLowerCase() === 'resolved').length,
           closed: list.filter((c) => c.status?.toLowerCase() === 'closed').length,
         })
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [companyId])
+
+        if (deptsRes?.ok) {
+          const deptPayload = await deptsRes.json()
+          setAssignedDepartments(
+            Array.isArray(deptPayload?.departments) ? deptPayload.departments : []
+          )
+        }
+      } catch {
+        // ignore
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [companyId, isOperationsManager])
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString('en-US', {
@@ -92,6 +121,35 @@ export default function QAManagerDashboard({
             : `Complaints overview for ${companyName}`}
         </p>
       </div>
+
+      {!isOperationsManager && !loading && (
+        <div className="mb-6 rounded-lg bg-white p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+          <p className="text-sm font-semibold text-[#081636]">Your assigned departments</p>
+          {assignedDepartments.length === 0 ? (
+            <p className="mt-2 text-sm text-[#081636]">
+              No departments assigned yet. Ask an Operations Manager to assign you to a
+              department (e.g. Sales) to see related complaints.
+            </p>
+          ) : (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {assignedDepartments.map((d) => (
+                <span
+                  key={d.id}
+                  className="inline-flex items-center rounded-md bg-[#EFF4FF] px-3 py-1.5 text-sm font-medium text-[#0108B8]"
+                >
+                  {d.name}
+                  {d.code ? (
+                    <span className="ml-1.5 text-xs text-[#081636]/70">({d.code})</span>
+                  ) : null}
+                </span>
+              ))}
+            </div>
+          )}
+          <p className="mt-3 text-xs text-[#081636]/80">
+            View Complaints shows only complaints for these departments.
+          </p>
+        </div>
+      )}
 
       {isOperationsManager && (
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -157,7 +215,9 @@ export default function QAManagerDashboard({
             </div>
             {recent.length === 0 ? (
               <p className="py-8 text-center text-sm text-[#081636]">
-                No complaints yet.
+                {!isOperationsManager && assignedDepartments.length === 0
+                  ? 'No department assignments — no complaints to show.'
+                  : 'No complaints in your assigned departments yet.'}
               </p>
             ) : (
               <ul className="divide-y divide-gray-200">
@@ -165,7 +225,10 @@ export default function QAManagerDashboard({
                   <li key={c.id} className="flex items-center justify-between py-3">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-[#081636]">{c.title}</p>
-                      <p className="text-xs text-[#081636]">{formatDate(c.created_at)}</p>
+                      <p className="text-xs text-[#081636]">
+                        {c.departments?.name ? `${c.departments.name} · ` : ''}
+                        {formatDate(c.created_at)}
+                      </p>
                     </div>
                     <span
                       className={`ml-4 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(

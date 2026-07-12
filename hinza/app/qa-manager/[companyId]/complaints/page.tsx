@@ -41,6 +41,7 @@ export default async function QAManagerComplaintsRoute({
       companyId={companyId}
       companyName={company.name}
       userPermissions={user.permissions}
+      isOperationsManager={isOperationsManager(user)}
     />
   )
 }

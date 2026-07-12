@@ -4,8 +4,9 @@
 INSERT INTO public.role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM public.roles r
+INNER JOIN public.companies c ON c.id = r.company_id
 CROSS JOIN public.permissions p
-WHERE r.name ILIKE 'Company Admin'
+WHERE r.name ILIKE ANY (ARRAY['Company Admin', 'Superadmin'])
   AND p.name IN (
     'complaints:read_company_wide',
     'departments:read',
