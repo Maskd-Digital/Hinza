@@ -6,11 +6,11 @@ import { isQAManager } from '@/lib/auth/qa-manager'
 import { isQAExecutive } from '@/lib/auth/qa-executive'
 import { isFacilityManager } from '@/lib/auth/facility-manager'
 import { isOperationsManager } from '@/lib/auth/operations-manager'
-import { isDepartmentScopedQaWorkspaceUser } from '@/lib/auth/qa-workspace-scope'
+import { isDepartmentScopedQaExecutive } from '@/lib/auth/qa-workspace-scope'
 import { getAssignedFacilityIdsForUser } from '@/lib/api/facility-manager-scope'
 import { getAssignedDepartmentIdsForUser } from '@/lib/api/department-scope'
 import { insertNotificationsForFacilityManagersAtFacility } from '@/lib/notify/qa-managers'
-import { insertNotificationsForDepartmentQaManagers } from '@/lib/notify/qa-managers'
+import { insertNotificationsForCompanyQaManagers } from '@/lib/notify/qa-managers'
 
 const COMPLAINT_LIST_SELECT =
   '*, products(name), facilities(address, name, city, state, country, postal_code), template:complaint_master_templates!template_id(name), departments:departments!department_id(id, name, code)'
@@ -92,7 +92,13 @@ export async function GET(request: NextRequest) {
       query = query.or('equipment_id.is.null,facility_escalated_at.not.is.null')
     }
 
-    if (qaWorkspace && isDepartmentScopedQaWorkspaceUser(user)) {
+    // QA Executives are dept-scoped unless listing their own assignments (assignee bypass).
+    // QA Managers are company-wide and are not filtered here.
+    if (
+      qaWorkspace &&
+      isDepartmentScopedQaExecutive(user) &&
+      assignedToId !== user.id
+    ) {
       const deptIds = await getAssignedDepartmentIdsForUser(
         adminClient,
         user.id,
@@ -263,12 +269,15 @@ export async function POST(request: NextRequest) {
       title
     )
 
-    await insertNotificationsForDepartmentQaManagers(
+    await insertNotificationsForCompanyQaManagers(
       adminClient,
       companyId,
-      departmentId,
       created.id as string,
-      title
+      {
+        type: 'department_complaint_created',
+        title: 'New complaint filed',
+        body: `"${title}" was filed and is available for triage.`,
+      }
     )
 
     return NextResponse.json(created, { status: 201 })

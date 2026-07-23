@@ -11,6 +11,7 @@ interface QAManagerDashboardProps {
 
 interface ComplaintStats {
   total: number
+  unassigned: number
   pending: number
   in_progress: number
   resolved: number
@@ -23,13 +24,8 @@ interface ComplaintSummary {
   status: string
   priority: string | null
   created_at: string
+  assigned_to_id?: string | null
   departments?: { id: string; name: string; code?: string | null } | null
-}
-
-interface AssignedDepartment {
-  id: string
-  name: string
-  code: string | null
 }
 
 export default function QAManagerDashboard({
@@ -39,45 +35,34 @@ export default function QAManagerDashboard({
 }: QAManagerDashboardProps) {
   const [stats, setStats] = useState<ComplaintStats>({
     total: 0,
+    unassigned: 0,
     pending: 0,
     in_progress: 0,
     resolved: 0,
     closed: 0,
   })
   const [recent, setRecent] = useState<ComplaintSummary[]>([])
-  const [assignedDepartments, setAssignedDepartments] = useState<AssignedDepartment[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const load = async () => {
       setLoading(true)
       try {
-        const [complaintsRes, deptsRes] = await Promise.all([
-          fetch(`/api/complaints?company_id=${companyId}&qa_workspace=1`),
-          !isOperationsManager
-            ? fetch(
-                `/api/department-qa-assignments?company_id=${companyId}&mine=1`
-              )
-            : Promise.resolve(null),
-        ])
-
+        const complaintsRes = await fetch(
+          `/api/complaints?company_id=${companyId}&qa_workspace=1`
+        )
         const data = await complaintsRes.json()
         const list: ComplaintSummary[] = Array.isArray(data) ? data : []
         setRecent(list.slice(0, 5))
         setStats({
           total: list.length,
+          unassigned: list.filter((c) => !c.assigned_to_id).length,
           pending: list.filter((c) => c.status?.toLowerCase() === 'pending').length,
-          in_progress: list.filter((c) => c.status?.toLowerCase() === 'in_progress').length,
+          in_progress: list.filter((c) => c.status?.toLowerCase() === 'in_progress')
+            .length,
           resolved: list.filter((c) => c.status?.toLowerCase() === 'resolved').length,
           closed: list.filter((c) => c.status?.toLowerCase() === 'closed').length,
         })
-
-        if (deptsRes?.ok) {
-          const deptPayload = await deptsRes.json()
-          setAssignedDepartments(
-            Array.isArray(deptPayload?.departments) ? deptPayload.departments : []
-          )
-        }
       } catch {
         // ignore
       } finally {
@@ -85,7 +70,7 @@ export default function QAManagerDashboard({
       }
     }
     load()
-  }, [companyId, isOperationsManager])
+  }, [companyId])
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString('en-US', {
@@ -117,39 +102,10 @@ export default function QAManagerDashboard({
         </h1>
         <p className="text-sm text-[#081636]">
           {isOperationsManager
-            ? `Company-wide oversight and department QA staffing for ${companyName}`
-            : `Complaints overview for ${companyName}`}
+            ? `Company-wide oversight and executive department staffing for ${companyName}`
+            : `Company-wide triage queue for ${companyName}`}
         </p>
       </div>
-
-      {!isOperationsManager && !loading && (
-        <div className="mb-6 rounded-lg bg-white p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
-          <p className="text-sm font-semibold text-[#081636]">Your assigned departments</p>
-          {assignedDepartments.length === 0 ? (
-            <p className="mt-2 text-sm text-[#081636]">
-              No departments assigned yet. Ask an Operations Manager to assign you to a
-              department (e.g. Sales) to see related complaints.
-            </p>
-          ) : (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {assignedDepartments.map((d) => (
-                <span
-                  key={d.id}
-                  className="inline-flex items-center rounded-md bg-[#EFF4FF] px-3 py-1.5 text-sm font-medium text-[#0108B8]"
-                >
-                  {d.name}
-                  {d.code ? (
-                    <span className="ml-1.5 text-xs text-[#081636]/70">({d.code})</span>
-                  ) : null}
-                </span>
-              ))}
-            </div>
-          )}
-          <p className="mt-3 text-xs text-[#081636]/80">
-            View Complaints shows only complaints for these departments.
-          </p>
-        </div>
-      )}
 
       {isOperationsManager && (
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -159,7 +115,7 @@ export default function QAManagerDashboard({
           >
             <p className="text-sm font-semibold text-[#081636]">Department QA assignments</p>
             <p className="mt-1 text-sm text-[#081636]">
-              Assign QA Managers and QA Executives to departments.
+              Assign QA Executives to departments for triage.
             </p>
           </Link>
           <Link
@@ -180,10 +136,14 @@ export default function QAManagerDashboard({
         </div>
       ) : (
         <>
-          <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
+          <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
               <p className="text-sm font-medium text-[#081636]">Total</p>
               <p className="mt-1 text-2xl font-semibold text-[#081636]">{stats.total}</p>
+            </div>
+            <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+              <p className="text-sm font-medium text-[#0108B8]">Unassigned</p>
+              <p className="mt-1 text-2xl font-semibold text-[#0108B8]">{stats.unassigned}</p>
             </div>
             <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
               <p className="text-sm font-medium text-[#FF4242]">Pending</p>
@@ -215,9 +175,7 @@ export default function QAManagerDashboard({
             </div>
             {recent.length === 0 ? (
               <p className="py-8 text-center text-sm text-[#081636]">
-                {!isOperationsManager && assignedDepartments.length === 0
-                  ? 'No department assignments — no complaints to show.'
-                  : 'No complaints in your assigned departments yet.'}
+                No complaints in the triage queue yet.
               </p>
             ) : (
               <ul className="divide-y divide-gray-200">
@@ -228,6 +186,7 @@ export default function QAManagerDashboard({
                       <p className="text-xs text-[#081636]">
                         {c.departments?.name ? `${c.departments.name} · ` : ''}
                         {formatDate(c.created_at)}
+                        {!c.assigned_to_id ? ' · Unassigned' : ''}
                       </p>
                     </div>
                     <span
@@ -238,10 +197,10 @@ export default function QAManagerDashboard({
                       {c.status?.replace(/_/g, ' ')}
                     </span>
                     <Link
-                      href={`/qa-manager/${companyId}/complaints?highlight=${c.id}`}
+                      href={`/qa-manager/${companyId}/complaints/${c.id}`}
                       className="ml-4 text-sm font-medium text-[#0108B8] hover:text-[#0108B8]/90"
                     >
-                      Open
+                      Triage
                     </Link>
                   </li>
                 ))}

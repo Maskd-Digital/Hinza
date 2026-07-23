@@ -14,7 +14,6 @@ interface UserOption {
   id: string
   full_name: string | null
   email: string | null
-  role_type: 'manager' | 'executive'
 }
 
 interface AssignmentRow {
@@ -24,10 +23,7 @@ interface AssignmentRow {
   created_at?: string
   user_name?: string
   department_name?: string
-  role_type?: 'manager' | 'executive'
 }
-
-type AssignRoleType = 'manager' | 'executive'
 
 interface DepartmentQaAssignmentsPageProps {
   companyId: string
@@ -40,11 +36,6 @@ function userLabel(u: UserOption) {
   return u.full_name || u.email || u.id
 }
 
-function roleTypeLabel(roleType: AssignRoleType | string | undefined): string {
-  if (roleType === 'executive') return 'Executive'
-  return 'Manager'
-}
-
 export default function DepartmentQaAssignmentsPage({
   companyId,
   companyName,
@@ -55,14 +46,12 @@ export default function DepartmentQaAssignmentsPage({
     canAssignProp ?? hasPermission(userPermissions, 'department_qa:assign')
 
   const [departments, setDepartments] = useState<DeptRow[]>([])
-  const [managers, setManagers] = useState<UserOption[]>([])
   const [executives, setExecutives] = useState<UserOption[]>([])
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState('')
   const [departmentId, setDepartmentId] = useState('')
-  const [assignRoleType, setAssignRoleType] = useState<AssignRoleType>('manager')
   const [saving, setSaving] = useState(false)
 
   const load = async () => {
@@ -77,7 +66,6 @@ export default function DepartmentQaAssignmentsPage({
       const data = await res.json()
       const deptList = Array.isArray(data.departments) ? data.departments : []
       setDepartments(deptList)
-      setManagers(Array.isArray(data.managers) ? data.managers : [])
       setExecutives(Array.isArray(data.executives) ? data.executives : [])
       setAssignments(Array.isArray(data.assignments) ? data.assignments : [])
       if (!departmentId && deptList[0]?.id) setDepartmentId(deptList[0].id)
@@ -91,9 +79,6 @@ export default function DepartmentQaAssignmentsPage({
   useEffect(() => {
     load()
   }, [companyId])
-
-  const usersForRoleType =
-    assignRoleType === 'executive' ? executives : managers
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -149,27 +134,16 @@ export default function DepartmentQaAssignmentsPage({
       <div>
         <h1 className="text-2xl font-bold text-[#081636]">Department QA assignments</h1>
         <p className="mt-1 text-sm text-[#081636]">
-          {companyName} — assign QA Managers and QA Executives to departments from your database.
+          {companyName} — assign QA Executives to departments. QA Managers and Operations
+          Managers are company-wide and are not assigned to departments.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <p className="text-sm font-medium text-[#081636]">QA Managers ({managers.length})</p>
-          {loading ? (
-            <p className="mt-2 text-sm text-gray-500">Loading…</p>
-          ) : managers.length === 0 ? (
-            <p className="mt-2 text-sm text-gray-500">No QA Manager users found.</p>
-          ) : (
-            <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-sm text-[#081636]">
-              {managers.map((u) => (
-                <li key={u.id}>{userLabel(u)}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <p className="text-sm font-medium text-[#081636]">QA Executives ({executives.length})</p>
+          <p className="text-sm font-medium text-[#081636]">
+            QA Executives ({executives.length})
+          </p>
           {loading ? (
             <p className="mt-2 text-sm text-gray-500">Loading…</p>
           ) : executives.length === 0 ? (
@@ -182,57 +156,43 @@ export default function DepartmentQaAssignmentsPage({
             </ul>
           )}
         </div>
-      </div>
-
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <p className="text-sm font-medium text-[#081636]">Departments ({departments.length})</p>
-        {loading ? (
-          <p className="mt-2 text-sm text-gray-500">Loading…</p>
-        ) : departments.length === 0 ? (
-          <p className="mt-2 text-sm text-gray-500">No departments found in database.</p>
-        ) : (
-          <ul className="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-2 text-sm text-[#081636]">
-            {departments.map((d) => (
-              <li key={d.id}>
-                {d.name}
-                {d.code ? ` (${d.code})` : ''}
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <p className="text-sm font-medium text-[#081636]">
+            Departments ({departments.length})
+          </p>
+          {loading ? (
+            <p className="mt-2 text-sm text-gray-500">Loading…</p>
+          ) : departments.length === 0 ? (
+            <p className="mt-2 text-sm text-gray-500">No departments found in database.</p>
+          ) : (
+            <ul className="mt-2 grid grid-cols-1 gap-1 text-sm text-[#081636] sm:grid-cols-2">
+              {departments.map((d) => (
+                <li key={d.id}>
+                  {d.name}
+                  {d.code ? ` (${d.code})` : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       <form
         onSubmit={handleAdd}
         className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
       >
-        <p className="text-sm font-medium text-[#081636]">New assignment</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <p className="text-sm font-medium text-[#081636]">Assign executive to department</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-medium text-gray-600">Role</label>
-            <select
-              value={assignRoleType}
-              onChange={(e) => {
-                setAssignRoleType(e.target.value as AssignRoleType)
-                setUserId('')
-              }}
-              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black"
-              required
-            >
-              <option value="manager">Manager</option>
-              <option value="executive">Executive</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-gray-600">User</label>
+            <label className="text-xs font-medium text-gray-600">QA Executive</label>
             <select
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black"
               required
             >
-              <option value="">Select user</option>
-              {usersForRoleType.map((u) => (
+              <option value="">Select executive</option>
+              {executives.map((u) => (
                 <option key={u.id} value={u.id}>
                   {userLabel(u)}
                 </option>
@@ -258,7 +218,7 @@ export default function DepartmentQaAssignmentsPage({
         </div>
         <button
           type="submit"
-          disabled={saving || departments.length === 0 || usersForRoleType.length === 0}
+          disabled={saving || departments.length === 0 || executives.length === 0}
           className="mt-4 rounded-lg bg-[#0108B8] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Assign'}
@@ -270,15 +230,18 @@ export default function DepartmentQaAssignmentsPage({
       ) : error ? (
         <p className="text-red-600">{error}</p>
       ) : assignments.length === 0 ? (
-        <p className="text-sm text-gray-500">No assignments yet.</p>
+        <p className="text-sm text-gray-500">No executive assignments yet.</p>
       ) : (
         <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold text-[#081636]">User</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#081636]">Role</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#081636]">Department</th>
+                <th className="px-4 py-3 text-left font-semibold text-[#081636]">
+                  Executive
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-[#081636]">
+                  Department
+                </th>
                 <th className="px-4 py-3 text-right font-semibold text-[#081636]"> </th>
               </tr>
             </thead>
@@ -286,7 +249,6 @@ export default function DepartmentQaAssignmentsPage({
               {assignments.map((a) => (
                 <tr key={`${a.user_id}-${a.department_id}`}>
                   <td className="px-4 py-3 text-[#081636]">{a.user_name ?? a.user_id}</td>
-                  <td className="px-4 py-3 text-gray-700">{roleTypeLabel(a.role_type)}</td>
                   <td className="px-4 py-3 text-gray-700">
                     {a.department_name ?? a.department_id}
                   </td>

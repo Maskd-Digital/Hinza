@@ -111,6 +111,7 @@ export interface UpdateComplaintInput {
   status?: string
   priority?: string
   assigned_to_id?: string | null
+  department_id?: string | null
   deadline?: string | null
   submitted_for_verification_at?: string | null
   capa_document_url?: string | null

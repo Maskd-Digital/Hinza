@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- permissions (new rows)
 -- ============================================================================
 INSERT INTO public.permissions (name, description) VALUES
-('complaints:read_company_wide', 'View all company complaints in QA workspace (Operations Manager)')
+('complaints:read_company_wide', 'Company-wide QA workspace (Operations Manager)')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO public.permissions (name, description) VALUES
@@ -25,7 +25,7 @@ INSERT INTO public.permissions (name, description) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO public.permissions (name, description) VALUES
-('department_qa:assign', 'Assign QA users to departments')
+('department_qa:assign', 'Assign QA Executives to departments for triage')
 ON CONFLICT (name) DO NOTHING;
 
 -- Grant new permissions to Superadmin roles (by name; avoids hardcoded role UUIDs)
@@ -63,7 +63,8 @@ CREATE TABLE IF NOT EXISTS public.departments (
 CREATE INDEX IF NOT EXISTS idx_departments_company_id ON public.departments(company_id);
 
 -- ============================================================================
--- department_qa_assignments (QA Manager / QA Executive scoped to departments)
+-- department_qa_assignments (QA Executives scoped to departments for triage)
+-- QA Managers and Operations Managers are company-wide and must not be stored here.
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.department_qa_assignments (
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,

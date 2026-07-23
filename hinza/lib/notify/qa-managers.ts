@@ -1,20 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-/** Users assigned to the department with QA Manager role (not company-wide Operations). */
-async function getDepartmentQaManagerUserIds(
+/** All users with QA Manager role in the company (company-wide triage owners). */
+export async function getCompanyQaManagerUserIds(
   adminClient: SupabaseClient,
-  companyId: string,
-  departmentId: string
+  companyId: string
 ): Promise<string[]> {
-  const { data: assignRows } = await adminClient
-    .from('department_qa_assignments')
-    .select('user_id')
-    .eq('company_id', companyId)
-    .eq('department_id', departmentId)
-
-  const candidateIds = [...new Set((assignRows || []).map((r) => r.user_id as string))]
-  if (candidateIds.length === 0) return []
-
   const { data: qaRoles } = await adminClient
     .from('roles')
     .select('id')
@@ -27,58 +17,29 @@ async function getDepartmentQaManagerUserIds(
   const { data: ur } = await adminClient
     .from('user_roles')
     .select('user_id')
-    .in('user_id', candidateIds)
     .in('role_id', qaRoleIds)
 
-  return [...new Set((ur || []).map((r) => r.user_id as string))]
+  const candidateIds = [...new Set((ur || []).map((r) => r.user_id as string))]
+  if (candidateIds.length === 0) return []
+
+  const { data: usersOk } = await adminClient
+    .from('users')
+    .select('id')
+    .in('id', candidateIds)
+    .eq('company_id', companyId)
+    .eq('is_active', true)
+
+  return [...new Set((usersOk || []).map((u) => u.id as string))]
 }
 
-/** New equipment complaint filed — notify department QA managers for that department only. */
-export async function insertNotificationsForDepartmentQaManagers(
-  adminClient: SupabaseClient,
-  companyId: string,
-  departmentId: string,
-  complaintId: string,
-  title: string
-): Promise<void> {
-  const recipientIds = await getDepartmentQaManagerUserIds(
-    adminClient,
-    companyId,
-    departmentId
-  )
-  if (recipientIds.length === 0) return
-
-  await adminClient.from('notifications').insert(
-    recipientIds.map((userId) => ({
-      user_id: userId,
-      company_id: companyId,
-      type: 'department_complaint_created',
-      related_entity_type: 'complaint',
-      related_entity_id: complaintId,
-      title: 'New complaint in your department',
-      body: `"${title}" was filed for your department queue.`,
-    }))
-  )
-}
-
-/**
- * QA Executive sent complaint for QA Manager verification — notify department QA managers only.
- * @deprecated broad name — use this for review workflow.
- */
-export async function insertNotificationsForQaManagers(
+/** Notify all company QA Managers (create, escalate, verification). */
+export async function insertNotificationsForCompanyQaManagers(
   adminClient: SupabaseClient,
   companyId: string,
   complaintId: string,
-  opts: { type: string; title: string; body: string },
-  departmentId: string | null | undefined
+  opts: { type: string; title: string; body: string }
 ): Promise<void> {
-  if (!departmentId) return
-
-  const recipientIds = await getDepartmentQaManagerUserIds(
-    adminClient,
-    companyId,
-    departmentId
-  )
+  const recipientIds = await getCompanyQaManagerUserIds(adminClient, companyId)
   if (recipientIds.length === 0) return
 
   await adminClient.from('notifications').insert(
@@ -92,6 +53,37 @@ export async function insertNotificationsForQaManagers(
       body: opts.body,
     }))
   )
+}
+
+/**
+ * @deprecated Prefer insertNotificationsForCompanyQaManagers — Managers are company-wide.
+ * Kept for call-site compatibility; ignores departmentId and notifies company QA Managers.
+ */
+export async function insertNotificationsForDepartmentQaManagers(
+  adminClient: SupabaseClient,
+  companyId: string,
+  _departmentId: string,
+  complaintId: string,
+  title: string
+): Promise<void> {
+  await insertNotificationsForCompanyQaManagers(adminClient, companyId, complaintId, {
+    type: 'department_complaint_created',
+    title: 'New complaint filed',
+    body: `"${title}" was filed and is available for triage.`,
+  })
+}
+
+/**
+ * QA Executive sent complaint for QA Manager verification — notify company QA Managers.
+ */
+export async function insertNotificationsForQaManagers(
+  adminClient: SupabaseClient,
+  companyId: string,
+  complaintId: string,
+  opts: { type: string; title: string; body: string },
+  _departmentId?: string | null
+): Promise<void> {
+  await insertNotificationsForCompanyQaManagers(adminClient, companyId, complaintId, opts)
 }
 
 export async function insertNotificationsForOperationsManagers(

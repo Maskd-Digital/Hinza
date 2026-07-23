@@ -3,12 +3,22 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { isSystemAdmin } from '@/lib/auth/permissions'
 import { canManageDepartmentQaAssignments } from '@/lib/auth/department-qa-assign'
+import { isQAManager } from '@/lib/auth/qa-manager'
+import { isOperationsManager } from '@/lib/auth/operations-manager'
 
 interface UserOption {
   id: string
   full_name: string | null
   email: string | null
-  role_type: 'manager' | 'executive'
+  role_type: 'executive'
+}
+
+function canReadTriageOptions(user: Parameters<typeof isQAManager>[0]): boolean {
+  return (
+    canManageDepartmentQaAssignments(user) ||
+    isQAManager(user) ||
+    isOperationsManager(user)
+  )
 }
 
 export async function GET(request: NextRequest) {
@@ -25,7 +35,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    if (!canManageDepartmentQaAssignments(user)) {
+    if (!canReadTriageOptions(user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -59,45 +69,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: rolesError.message }, { status: 500 })
     }
 
-    const managerRoleIds =
-      roles?.filter((r) => r.name?.trim().toLowerCase() === 'qa manager').map((r) => r.id) ??
-      []
     const executiveRoleIds =
       roles?.filter((r) => r.name?.trim().toLowerCase() === 'qa executive').map((r) => r.id) ??
       []
 
-    const loadUsersForRoles = async (
-      roleIds: string[],
-      roleType: 'manager' | 'executive'
-    ): Promise<UserOption[]> => {
-      if (roleIds.length === 0) return []
-
+    // Only QA Executives may be department-staffed (not QA Manager / Operations Manager).
+    let executives: UserOption[] = []
+    if (executiveRoleIds.length > 0) {
       const { data: userRoles } = await adminClient
         .from('user_roles')
         .select('user_id')
-        .in('role_id', roleIds)
+        .in('role_id', executiveRoleIds)
 
       const userIds = [...new Set((userRoles || []).map((row) => row.user_id as string))]
-      if (userIds.length === 0) return []
+      if (userIds.length > 0) {
+        const { data: users } = await adminClient
+          .from('users')
+          .select('id, full_name, email')
+          .eq('company_id', companyId)
+          .in('id', userIds)
 
-      const { data: users } = await adminClient
-        .from('users')
-        .select('id, full_name, email')
-        .eq('company_id', companyId)
-        .in('id', userIds)
-
-      return (users || []).map((u) => ({
-        id: u.id as string,
-        full_name: u.full_name as string | null,
-        email: u.email as string | null,
-        role_type: roleType,
-      }))
+        executives = (users || []).map((u) => ({
+          id: u.id as string,
+          full_name: u.full_name as string | null,
+          email: u.email as string | null,
+          role_type: 'executive' as const,
+        }))
+      }
     }
 
-    const [managers, executives] = await Promise.all([
-      loadUsersForRoles(managerRoleIds, 'manager'),
-      loadUsersForRoles(executiveRoleIds, 'executive'),
-    ])
+    const executiveIdSet = new Set(executives.map((e) => e.id))
 
     const { data: assignmentRows, error: asgError } = await adminClient
       .from('department_qa_assignments')
@@ -106,72 +107,41 @@ export async function GET(request: NextRequest) {
 
     if (asgError) {
       if (asgError.code === '42P01') {
-        return NextResponse.json({ departments: departments || [], managers, executives, assignments: [] })
+        return NextResponse.json({
+          departments: departments || [],
+          managers: [],
+          executives,
+          assignments: [],
+        })
       }
       return NextResponse.json({ error: asgError.message }, { status: 500 })
     }
 
-    const assignmentUserIds = [
-      ...new Set((assignmentRows || []).map((row) => row.user_id as string)),
-    ]
-
-    const knownUsers = new Map<string, UserOption>()
-    ;[...managers, ...executives].forEach((u) => knownUsers.set(u.id, u))
-
-    const executiveIdSet = new Set(executiveRoleIds)
-
-    const resolveRoleType = async (userId: string): Promise<'manager' | 'executive'> => {
-      const { data: userRoles } = await adminClient
-        .from('user_roles')
-        .select('role_id')
-        .eq('user_id', userId)
-
-      const hasExecutive = (userRoles || []).some((ur) =>
-        executiveIdSet.has(ur.role_id as string)
-      )
-      return hasExecutive ? 'executive' : 'manager'
-    }
-
-    const missingUserIds = assignmentUserIds.filter((id) => !knownUsers.has(id))
-    for (const uid of missingUserIds) {
-      const { data: u } = await adminClient
-        .from('users')
-        .select('id, full_name, email')
-        .eq('id', uid)
-        .eq('company_id', companyId)
-        .maybeSingle()
-
-      if (u) {
-        knownUsers.set(uid, {
-          id: u.id as string,
-          full_name: u.full_name as string | null,
-          email: u.email as string | null,
-          role_type: await resolveRoleType(uid),
-        })
-      }
-    }
-
     const deptById = new Map((departments || []).map((d) => [d.id as string, d]))
+    const execById = new Map(executives.map((e) => [e.id, e]))
 
-    const assignments = (assignmentRows || []).map((row) => {
-      const uid = row.user_id as string
-      const did = row.department_id as string
-      const u = knownUsers.get(uid)
-      const dept = deptById.get(did)
-      return {
-        user_id: uid,
-        department_id: did,
-        company_id: row.company_id as string,
-        created_at: row.created_at as string,
-        user_name: u?.full_name || u?.email || uid,
-        department_name: (dept?.name as string) || did,
-        role_type: u?.role_type ?? 'manager',
-      }
-    })
+    // Only return executive assignments (drop QA Manager / Ops Manager rows from API).
+    const assignments = (assignmentRows || [])
+      .filter((row) => executiveIdSet.has(row.user_id as string))
+      .map((row) => {
+        const uid = row.user_id as string
+        const did = row.department_id as string
+        const u = execById.get(uid)
+        const dept = deptById.get(did)
+        return {
+          user_id: uid,
+          department_id: did,
+          company_id: row.company_id as string,
+          created_at: row.created_at as string,
+          user_name: u?.full_name || u?.email || uid,
+          department_name: (dept?.name as string) || did,
+          role_type: 'executive' as const,
+        }
+      })
 
     return NextResponse.json({
       departments: departments || [],
-      managers,
+      managers: [],
       executives,
       assignments,
     })

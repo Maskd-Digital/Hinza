@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
 
     const adminClient = createAdminClient()
 
-    // QA Managers / Executives can read their own assigned departments
+    // Executives can read their own assigned departments (mine=1).
+    // Managers/Ops list all assignments for triage assignee filtering.
     if (mine) {
       const canReadOwn =
         isQAManager(user) ||
@@ -43,7 +44,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ departments })
     }
 
-    if (!canManageDepartmentQaAssignments(user)) {
+    if (
+      !canManageDepartmentQaAssignments(user) &&
+      !isQAManager(user) &&
+      !isOperationsManager(user)
+    ) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -110,6 +115,64 @@ export async function POST(request: NextRequest) {
 
     if (derr || !dept || dept.company_id !== companyId) {
       return NextResponse.json({ error: 'Invalid department for company' }, { status: 400 })
+    }
+
+    // Only QA Executives may be assigned to departments (not QA Manager / Operations Manager).
+    const { data: roles } = await adminClient
+      .from('roles')
+      .select('id, name')
+      .eq('company_id', companyId)
+
+    const executiveRoleIds =
+      roles
+        ?.filter((r) => r.name?.trim().toLowerCase() === 'qa executive')
+        .map((r) => r.id as string) ?? []
+
+    const blockedRoleIds =
+      roles
+        ?.filter((r) => {
+          const n = r.name?.trim().toLowerCase() ?? ''
+          return n === 'qa manager' || n === 'operations manager'
+        })
+        .map((r) => r.id as string) ?? []
+
+    if (blockedRoleIds.length > 0) {
+      const { data: blocked } = await adminClient
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', userId)
+        .in('role_id', blockedRoleIds)
+        .limit(1)
+      if (blocked && blocked.length > 0) {
+        return NextResponse.json(
+          {
+            error:
+              'QA Managers and Operations Managers cannot be assigned to departments. Assign QA Executives only.',
+          },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (executiveRoleIds.length === 0) {
+      return NextResponse.json(
+        { error: 'Assignee must be a QA Executive' },
+        { status: 400 }
+      )
+    }
+
+    const { data: execUr } = await adminClient
+      .from('user_roles')
+      .select('user_id')
+      .eq('user_id', userId)
+      .in('role_id', executiveRoleIds)
+      .maybeSingle()
+
+    if (!execUr) {
+      return NextResponse.json(
+        { error: 'Assignee must be a QA Executive' },
+        { status: 400 }
+      )
     }
 
     const { data, error } = await adminClient

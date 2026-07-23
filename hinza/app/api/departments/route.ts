@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserWithRoles } from '@/lib/auth/get-user-with-roles'
 import { hasAnyPermission, hasPermission, isSystemAdmin } from '@/lib/auth/permissions'
 import { isOperationsManager } from '@/lib/auth/operations-manager'
+import { isQAManager } from '@/lib/auth/qa-manager'
 import type { UserWithRoles } from '@/types/auth'
 
 function canReadDepartmentsList(user: UserWithRoles): boolean {
@@ -10,7 +11,8 @@ function canReadDepartmentsList(user: UserWithRoles): boolean {
     hasPermission(user.permissions, 'departments:read') ||
     hasPermission(user.permissions, 'complaints:create') ||
     hasPermission(user.permissions, 'department_qa:assign') ||
-    isOperationsManager(user)
+    isOperationsManager(user) ||
+    isQAManager(user)
   )
 }
 

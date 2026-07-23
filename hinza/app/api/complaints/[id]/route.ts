@@ -6,7 +6,7 @@ import { isQAManager } from '@/lib/auth/qa-manager'
 import { isQAExecutive } from '@/lib/auth/qa-executive'
 import { isFacilityManager } from '@/lib/auth/facility-manager'
 import { isOperationsManager } from '@/lib/auth/operations-manager'
-import { isDepartmentScopedQaWorkspaceUser } from '@/lib/auth/qa-workspace-scope'
+import { isDepartmentScopedQaExecutive } from '@/lib/auth/qa-workspace-scope'
 import { getAssignedFacilityIdsForUser } from '@/lib/api/facility-manager-scope'
 import { userHasDepartmentAssignment } from '@/lib/api/department-scope'
 import { UpdateComplaintInput } from '@/types/complaint'
@@ -89,6 +89,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       facility_id?: string | null
       facility_escalated_at?: string | null
       department_id?: string | null
+      assigned_to_id?: string | null
     }
 
     if (!isSystemAdmin(user.company_id) && user.company_id !== complaint.company_id) {
@@ -103,15 +104,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    if (hasPermission(user.permissions, 'complaints:read') && isDepartmentScopedQaWorkspaceUser(user)) {
-      const allowed = await userHasDepartmentAssignment(
-        adminClient,
-        user.id,
-        complaint.company_id,
-        complaint.department_id
-      )
-      if (!allowed) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (
+      hasPermission(user.permissions, 'complaints:read') &&
+      isDepartmentScopedQaExecutive(user)
+    ) {
+      const isAssignee = complaint.assigned_to_id === user.id
+      if (!isAssignee) {
+        const allowed = await userHasDepartmentAssignment(
+          adminClient,
+          user.id,
+          complaint.company_id,
+          complaint.department_id
+        )
+        if (!allowed) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
       }
     }
 
@@ -178,15 +185,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    if (isDepartmentScopedQaWorkspaceUser(user)) {
-      const allowed = await userHasDepartmentAssignment(
-        adminClient,
-        user.id,
-        existing.company_id as string,
-        existing.department_id as string | null | undefined
-      )
-      if (!allowed) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (isDepartmentScopedQaExecutive(user)) {
+      const isAssignee = existing.assigned_to_id === user.id
+      if (!isAssignee) {
+        const allowed = await userHasDepartmentAssignment(
+          adminClient,
+          user.id,
+          existing.company_id as string,
+          existing.department_id as string | null | undefined
+        )
+        if (!allowed) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
       }
     }
 
@@ -196,6 +206,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (body.status !== undefined) update.status = body.status
     if (body.priority !== undefined) update.priority = body.priority
     if (body.assigned_to_id !== undefined) update.assigned_to_id = body.assigned_to_id
+    if (body.department_id !== undefined) update.department_id = body.department_id
     if (body.deadline !== undefined) update.deadline = body.deadline
     if (body.submitted_for_verification_at !== undefined) {
       update.submitted_for_verification_at = body.submitted_for_verification_at
@@ -261,15 +272,90 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     } else if (
       isQAManager(user) ||
       isOperationsManager(user) ||
-      hasPermission(user.permissions, 'complaints:update')
+      hasPermission(user.permissions, 'complaints:update') ||
+      hasPermission(user.permissions, 'complaints:assign')
     ) {
-      // full update object as built
+      // full update object as built (triage: department + assign)
     } else {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+    }
+
+    const companyId = existing.company_id as string
+    const nextDepartmentId =
+      body.department_id !== undefined
+        ? body.department_id
+        : (existing.department_id as string | null)
+
+    if (update.department_id !== undefined && update.department_id !== null) {
+      const { data: deptRow, error: deptErr } = await adminClient
+        .from('departments')
+        .select('id')
+        .eq('id', update.department_id as string)
+        .eq('company_id', companyId)
+        .maybeSingle()
+      if (deptErr || !deptRow) {
+        return NextResponse.json(
+          { error: 'Invalid department for this company' },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (update.assigned_to_id !== undefined && update.assigned_to_id !== null) {
+      const assigneeId = update.assigned_to_id as string
+      const { data: assigneeUser } = await adminClient
+        .from('users')
+        .select('id')
+        .eq('id', assigneeId)
+        .eq('company_id', companyId)
+        .maybeSingle()
+      if (!assigneeUser) {
+        return NextResponse.json({ error: 'Invalid assignee for this company' }, { status: 400 })
+      }
+
+      const { data: execRoles } = await adminClient
+        .from('roles')
+        .select('id')
+        .eq('company_id', companyId)
+        .ilike('name', 'QA Executive')
+      const execRoleIds = (execRoles || []).map((r) => r.id as string)
+      if (execRoleIds.length === 0) {
+        return NextResponse.json(
+          { error: 'Assignee must be a QA Executive' },
+          { status: 400 }
+        )
+      }
+      const { data: ur } = await adminClient
+        .from('user_roles')
+        .select('user_id')
+        .eq('user_id', assigneeId)
+        .in('role_id', execRoleIds)
+        .maybeSingle()
+      if (!ur) {
+        return NextResponse.json(
+          { error: 'Assignee must be a QA Executive' },
+          { status: 400 }
+        )
+      }
+
+      if (nextDepartmentId) {
+        const hasDept = await userHasDepartmentAssignment(
+          adminClient,
+          assigneeId,
+          companyId,
+          nextDepartmentId
+        )
+        if (!hasDept) {
+          return NextResponse.json(
+            { error: 'Assignee must be assigned to the complaint department' },
+            { status: 400 }
+          )
+        }
+      }
     }
 
     const { data, error } = await adminClient
@@ -290,7 +376,6 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     if (body.submitted_for_verification_at !== undefined && data) {
-      const companyId = data.company_id as string
       const complaintTitle = (data.title as string) || 'Complaint'
       await insertNotificationsForQaManagers(adminClient, companyId, id, {
         type: 'complaint_sent_for_review',

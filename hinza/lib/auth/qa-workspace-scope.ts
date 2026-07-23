@@ -1,13 +1,23 @@
 import { UserWithRoles } from '@/types/auth'
-import { isQAManager } from '@/lib/auth/qa-manager'
 import { isQAExecutive } from '@/lib/auth/qa-executive'
 import { isOperationsManager } from '@/lib/auth/operations-manager'
 
-/** QA Manager or QA Executive without Operations Manager company-wide access — scoped by department assignments. */
-export function isDepartmentScopedQaWorkspaceUser(
+/**
+ * QA Executives without Operations Manager company-wide access are scoped by
+ * department assignments. QA Managers are company-wide triage owners and are
+ * not department-scoped.
+ */
+export function isDepartmentScopedQaExecutive(
   user: UserWithRoles | null | undefined
 ): boolean {
   if (!user) return false
   if (isOperationsManager(user)) return false
-  return isQAManager(user) || isQAExecutive(user)
+  return isQAExecutive(user)
+}
+
+/** @deprecated Use isDepartmentScopedQaExecutive — QA Managers are company-wide. */
+export function isDepartmentScopedQaWorkspaceUser(
+  user: UserWithRoles | null | undefined
+): boolean {
+  return isDepartmentScopedQaExecutive(user)
 }

@@ -19,7 +19,7 @@ interface CompanyUser {
   roles: Array<{ id: string; name: string }>
 }
 
-interface AssignedDepartment {
+interface DepartmentOption {
   id: string
   name: string
   code: string | null
@@ -28,32 +28,31 @@ interface AssignedDepartment {
 export default function QAManagerComplaintsPage({
   companyId,
   companyName,
-  isOperationsManager = false,
 }: QAManagerComplaintsPageProps) {
   const [complaints, setComplaints] = useState<Complaint[]>([])
   const [users, setUsers] = useState<CompanyUser[]>([])
-  const [assignedDepartments, setAssignedDepartments] = useState<AssignedDepartment[]>([])
+  const [departments, setDepartments] = useState<DepartmentOption[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [assignmentFilter, setAssignmentFilter] = useState<'all' | 'unassigned' | 'assigned'>(
+    'all'
+  )
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all')
 
   useEffect(() => {
     fetchComplaints()
     fetchUsers()
-    if (!isOperationsManager) {
-      fetchAssignedDepartments()
-    }
-  }, [companyId, isOperationsManager])
+    fetchDepartments()
+  }, [companyId])
 
-  const fetchAssignedDepartments = async () => {
+  const fetchDepartments = async () => {
     try {
-      const res = await fetch(
-        `/api/department-qa-assignments?company_id=${companyId}&mine=1`
-      )
+      const res = await fetch(`/api/departments?company_id=${companyId}`)
       if (!res.ok) return
       const data = await res.json()
-      setAssignedDepartments(Array.isArray(data?.departments) ? data.departments : [])
+      setDepartments(Array.isArray(data) ? data : [])
     } catch {
       // ignore
     }
@@ -95,13 +94,20 @@ export default function QAManagerComplaintsPage({
       const matchStatus =
         statusFilter === 'all' ||
         c.status?.toLowerCase() === statusFilter.toLowerCase()
-      return matchSearch && matchStatus
+      const matchAssignment =
+        assignmentFilter === 'all' ||
+        (assignmentFilter === 'unassigned' && !c.assigned_to_id) ||
+        (assignmentFilter === 'assigned' && Boolean(c.assigned_to_id))
+      const matchDepartment =
+        departmentFilter === 'all' || c.department_id === departmentFilter
+      return matchSearch && matchStatus && matchAssignment && matchDepartment
     })
-  }, [complaints, searchQuery, statusFilter])
+  }, [complaints, searchQuery, statusFilter, assignmentFilter, departmentFilter])
 
   const stats = useMemo(() => {
     return {
       total: complaints.length,
+      unassigned: complaints.filter((c) => !c.assigned_to_id).length,
       pending: complaints.filter((c) => c.status?.toLowerCase() === 'pending').length,
       in_progress: complaints.filter((c) => c.status?.toLowerCase() === 'in_progress').length,
       resolved: complaints.filter((c) => c.status?.toLowerCase() === 'resolved').length,
@@ -137,54 +143,24 @@ export default function QAManagerComplaintsPage({
     return u?.full_name || u?.email || assignedToId
   }
 
-  const assignedDeptLabel =
-    assignedDepartments.length > 0
-      ? assignedDepartments.map((d) => d.name).join(', ')
-      : null
-
   return (
     <div className="min-h-full bg-[#EFF4FF] p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#081636]">Complaints</h1>
         <p className="text-sm text-[#081636]">
-          {isOperationsManager
-            ? `Company-wide queue for ${companyName}`
-            : assignedDeptLabel
-              ? `Showing complaints for: ${assignedDeptLabel}`
-              : `View, delegate, verify documents, and mark as done`}
+          Company-wide triage queue for {companyName} — confirm department and assign a QA
+          Executive.
         </p>
       </div>
 
-      {!isOperationsManager && (
-        <div className="mb-6 rounded-lg bg-white p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
-          <p className="text-sm font-semibold text-[#081636]">Your assigned departments</p>
-          {assignedDepartments.length === 0 ? (
-            <p className="mt-2 text-sm text-[#081636]">
-              No departments assigned. You will not see any complaints until an Operations
-              Manager assigns you to a department.
-            </p>
-          ) : (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {assignedDepartments.map((d) => (
-                <span
-                  key={d.id}
-                  className="inline-flex items-center rounded-md bg-[#EFF4FF] px-3 py-1.5 text-sm font-medium text-[#0108B8]"
-                >
-                  {d.name}
-                  {d.code ? (
-                    <span className="ml-1.5 text-xs text-[#081636]/70">({d.code})</span>
-                  ) : null}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
           <p className="text-sm font-medium text-[#081636]">Total</p>
           <p className="mt-1 text-2xl font-semibold text-[#081636]">{stats.total}</p>
+        </div>
+        <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
+          <p className="text-sm font-medium text-[#0108B8]">Unassigned</p>
+          <p className="mt-1 text-2xl font-semibold text-[#0108B8]">{stats.unassigned}</p>
         </div>
         <div className="rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
           <p className="text-sm font-medium text-[#FF4242]">Pending</p>
@@ -204,8 +180,8 @@ export default function QAManagerComplaintsPage({
         </div>
       </div>
 
-      <div className="mb-6 flex flex-col gap-3 rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)] sm:flex-row sm:items-center">
-        <div className="relative flex-1">
+      <div className="mb-6 flex flex-col gap-3 rounded-lg bg-[#FFFFFF] p-4 shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)] sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative min-w-[200px] flex-1">
           <input
             type="text"
             placeholder="Search complaints or department..."
@@ -219,9 +195,37 @@ export default function QAManagerComplaintsPage({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
         </div>
+        <select
+          value={assignmentFilter}
+          onChange={(e) =>
+            setAssignmentFilter(e.target.value as 'all' | 'unassigned' | 'assigned')
+          }
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] shadow-[inset_0_4px_6px_-1px_rgba(1,8,184,0.25)] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
+        >
+          <option value="all">All assignment</option>
+          <option value="unassigned">Unassigned</option>
+          <option value="assigned">Assigned</option>
+        </select>
+        <select
+          value={departmentFilter}
+          onChange={(e) => setDepartmentFilter(e.target.value)}
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#081636] shadow-[inset_0_4px_6px_-1px_rgba(1,8,184,0.25)] focus:border-[#0108B8] focus:outline-none focus:ring-1 focus:ring-[#0108B8]"
+        >
+          <option value="all">All departments</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name}
+            </option>
+          ))}
+        </select>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -245,11 +249,7 @@ export default function QAManagerComplaintsPage({
         </div>
       ) : filteredComplaints.length === 0 ? (
         <div className="rounded-lg bg-[#FFFFFF] py-12 text-center shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
-          <p className="text-[#081636]">
-            {!isOperationsManager && assignedDepartments.length === 0
-              ? 'No department assignments — no complaints to show.'
-              : 'No complaints match your filters.'}
-          </p>
+          <p className="text-[#081636]">No complaints match your filters.</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg bg-[#FFFFFF] shadow-[0_4px_6px_-1px_rgba(37,99,235,0.25),0_2px_4px_-2px_rgba(37,99,235,0.25)]">
@@ -284,14 +284,12 @@ export default function QAManagerComplaintsPage({
                 {filteredComplaints.map((c) => (
                   <tr key={c.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div className="space-y-0.5">
-                        <p className="text-sm font-semibold text-[#081636] truncate max-w-xs">
+                      <div className="max-w-xs space-y-0.5">
+                        <p className="truncate text-sm font-semibold text-[#081636]">
                           {c.template?.name ?? c.complaint_master_templates?.name ?? c.title}
                         </p>
                         {c.description && (
-                          <p className="text-sm text-[#081636] truncate max-w-xs">
-                            {c.description}
-                          </p>
+                          <p className="truncate text-sm text-[#081636]">{c.description}</p>
                         )}
                       </div>
                     </td>
@@ -317,7 +315,9 @@ export default function QAManagerComplaintsPage({
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-[#081636]">
-                      {getAssigneeName(c.assigned_to_id) ?? '—'}
+                      {getAssigneeName(c.assigned_to_id) ?? (
+                        <span className="text-[#0108B8]">Unassigned</span>
+                      )}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-[#081636]">
                       {formatDate(c.created_at)}
@@ -327,7 +327,7 @@ export default function QAManagerComplaintsPage({
                         href={`/qa-manager/${companyId}/complaints/${c.id}`}
                         className="text-sm font-medium text-[#0108B8] hover:text-[#0108B8]/90"
                       >
-                        View / Manage
+                        Triage
                       </Link>
                     </td>
                   </tr>

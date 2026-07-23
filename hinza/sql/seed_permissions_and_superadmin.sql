@@ -26,7 +26,7 @@ INSERT INTO public.permissions (name, description) VALUES
 ('complaints:read', 'View complaints'),
 ('complaints:create', 'Create new complaints'),
 ('complaints:update', 'Update complaint information'),
-('complaints:assign', 'Assign complaints to users'),
+('complaints:assign', 'Assign complaints to QA Executives (triage)'),
 ('complaints:resolve', 'Resolve complaints')
 ON CONFLICT (name) DO NOTHING;
 
@@ -96,6 +96,15 @@ INSERT INTO public.permissions (name, description) VALUES
 ('facility_complaints:create', 'Create facility equipment complaints'),
 ('facility_complaints:read', 'View facility equipment complaints for assigned facilities'),
 ('facility_complaints:escalate', 'Escalate facility equipment complaints to QA')
+ON CONFLICT (name) DO NOTHING;
+
+-- Departments & company-wide QA (triage architecture)
+INSERT INTO public.permissions (name, description) VALUES
+('complaints:read_company_wide', 'Company-wide QA workspace (Operations Manager)'),
+('departments:read', 'View departments for a company'),
+('departments:create', 'Create departments for a company'),
+('departments:manage', 'Update and delete departments'),
+('department_qa:assign', 'Assign QA Executives to departments for triage')
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================

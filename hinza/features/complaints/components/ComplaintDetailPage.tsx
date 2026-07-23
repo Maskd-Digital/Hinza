@@ -81,6 +81,18 @@ export default function ComplaintDetailPage({
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [escalating, setEscalating] = useState(false)
   const [notifyingOps, setNotifyingOps] = useState(false)
+  const [triageDepartmentId, setTriageDepartmentId] = useState('')
+  const [triageAssigneeId, setTriageAssigneeId] = useState('')
+  const [savingTriage, setSavingTriage] = useState(false)
+  const [departments, setDepartments] = useState<
+    Array<{ id: string; name: string; code: string | null }>
+  >([])
+  const [executives, setExecutives] = useState<
+    Array<{ id: string; full_name: string | null; email: string | null }>
+  >([])
+  const [deptAssignments, setDeptAssignments] = useState<
+    Array<{ user_id: string; department_id: string }>
+  >([])
   const fileInputCapa = useRef<HTMLInputElement>(null)
   const fileInputSla = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -90,6 +102,8 @@ export default function ComplaintDetailPage({
     if (!res.ok) throw new Error('Failed to fetch complaint')
     const data = await res.json()
     setComplaint(data)
+    setTriageDepartmentId(data.department_id ?? '')
+    setTriageAssigneeId(data.assigned_to_id ?? '')
   }
 
   const fetchComments = async () => {
@@ -113,13 +127,36 @@ export default function ComplaintDetailPage({
     setUsers(Array.isArray(data) ? data : [])
   }
 
+  const fetchTriageOptions = async () => {
+    if (userRole !== 'qa_manager' && userRole !== 'operations_manager') return
+    const res = await fetch(`/api/department-qa/options?company_id=${companyId}`)
+    if (!res.ok) {
+      const deptRes = await fetch(`/api/departments?company_id=${companyId}`)
+      if (deptRes.ok) {
+        const depts = await deptRes.json()
+        setDepartments(Array.isArray(depts) ? depts : [])
+      }
+      return
+    }
+    const data = await res.json()
+    setDepartments(Array.isArray(data.departments) ? data.departments : [])
+    setExecutives(Array.isArray(data.executives) ? data.executives : [])
+    setDeptAssignments(Array.isArray(data.assignments) ? data.assignments : [])
+  }
+
   useEffect(() => {
     let cancelled = false
     async function load() {
       setLoading(true)
       setError(null)
       try {
-        await Promise.all([fetchComplaint(), fetchComments(), fetchDocuments(), fetchUsers()])
+        await Promise.all([
+          fetchComplaint(),
+          fetchComments(),
+          fetchDocuments(),
+          fetchUsers(),
+          fetchTriageOptions(),
+        ])
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load')
       } finally {
@@ -128,7 +165,7 @@ export default function ComplaintDetailPage({
     }
     load()
     return () => { cancelled = true }
-  }, [complaintId, companyId])
+  }, [complaintId, companyId, userRole])
 
   const getAssigneeName = (assignedToId: string | null) => {
     if (!assignedToId) return '—'
@@ -286,7 +323,51 @@ export default function ComplaintDetailPage({
     complaint.department_id &&
     !complaint.operations_notified_at &&
     (userRole === 'qa_manager' ||
+      userRole === 'operations_manager' ||
       (userRole === 'company_admin' && hasPermission(user.permissions, 'complaints:update')))
+
+  const canTriage =
+    isQAManagerLike &&
+    complaint &&
+    !/closed/i.test(complaint.status || '')
+
+  const executivesForDepartment = executives.filter((exec) =>
+    triageDepartmentId
+      ? deptAssignments.some(
+          (a) => a.user_id === exec.id && a.department_id === triageDepartmentId
+        )
+      : true
+  )
+
+  const handleSaveTriage = async () => {
+    if (!complaint) return
+    if (!triageDepartmentId) {
+      alert('Select a department')
+      return
+    }
+    setSavingTriage(true)
+    try {
+      const payload: Record<string, unknown> = {
+        department_id: triageDepartmentId,
+        assigned_to_id: triageAssigneeId || null,
+      }
+      if (triageAssigneeId) {
+        payload.status = 'in_progress'
+      }
+      const res = await fetch(`/api/complaints/${complaintId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to save triage')
+      await fetchComplaint()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Failed to save triage')
+    } finally {
+      setSavingTriage(false)
+    }
+  }
 
   const handleNotifyOperations = async () => {
     if (!complaint) return
@@ -386,12 +467,77 @@ export default function ComplaintDetailPage({
           <p className="mt-1 text-sm font-medium text-[#081636]">{formatFacilityName(complaint.facilities)}</p>
         </div>
 
-        {(complaint.departments?.name || complaint.department_id) && (
+        {(complaint.departments?.name || complaint.department_id) && !canTriage && (
           <div className="mt-4 rounded-lg border border-indigo-100 bg-indigo-50/80 p-4">
             <p className="text-xs font-semibold uppercase text-indigo-900">Department</p>
             <p className="mt-1 text-sm font-medium text-[#081636]">
               {complaint.departments?.name ?? '—'}
             </p>
+          </div>
+        )}
+
+        {canTriage && (
+          <div className="mt-6 rounded-lg border border-[#0108B8]/20 bg-[#EFF4FF] p-4">
+            <h2 className="text-sm font-semibold text-[#081636]">Triage</h2>
+            <p className="mt-1 text-xs text-gray-600">
+              Confirm or change the department, then assign a QA Executive for that department.
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-[#081636]">Department</label>
+                <select
+                  value={triageDepartmentId}
+                  onChange={(e) => {
+                    setTriageDepartmentId(e.target.value)
+                    setTriageAssigneeId('')
+                  }}
+                  className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-[#081636]"
+                >
+                  <option value="">Select department…</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                      {d.code ? ` (${d.code})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#081636]">
+                  Assign QA Executive
+                </label>
+                <select
+                  value={triageAssigneeId}
+                  onChange={(e) => setTriageAssigneeId(e.target.value)}
+                  disabled={!triageDepartmentId}
+                  className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-[#081636] disabled:bg-gray-100"
+                >
+                  <option value="">Unassigned</option>
+                  {executivesForDepartment.map((exec) => (
+                    <option key={exec.id} value={exec.id}>
+                      {exec.full_name || exec.email || exec.id}
+                    </option>
+                  ))}
+                </select>
+                {triageDepartmentId && executivesForDepartment.length === 0 && (
+                  <p className="mt-1 text-xs text-amber-700">
+                    No executives assigned to this department yet.
+                  </p>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveTriage}
+              disabled={savingTriage || !triageDepartmentId}
+              className="mt-4 rounded-md px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+              style={{
+                backgroundColor: '#0108B8',
+                boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)',
+              }}
+            >
+              {savingTriage ? 'Saving…' : 'Save triage'}
+            </button>
           </div>
         )}
 
